@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Node.js文件系统 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/01/23/node7/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#NodeJS" title="NodeJS">NodeJS</a>
+                        
+                    </div>
+                    <h1>Node.js文件系统</h1>
+                    
+                    
+                    <h2 class="subheading">Node文件系统方法总结</h2>
+                    
+                    <span class="meta">Posted by wang chong on January 23, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="文件模块">文件模块</h3>
+<p>引入文件模块</p>
+<blockquote>
+  <p>const fs = require(‘fs’);</p>
+</blockquote>
+
+<h4 id="异步与同步文件操作的区别">异步与同步文件操作的区别</h4>
+<p>异步方法性能更高、速度更快、而且没有阻塞</p>
+
+<h4 id="打开文件异步">打开文件–异步</h4>
+<pre><code class="language-JavaScript">fs.open(path,flags,mode,callback);
+</code></pre>
+<ol>
+  <li>path：文件的路径</li>
+  <li>flags：文件打开的行为。</li>
+  <li>model：设置文件模式(权限),文件创建默认权限为0666(可读可写);
+    <ol>
+      <li>r：以读取模式打开文件。如果文件不存在抛出异常</li>
+      <li>r+：以读写模式打开文件，如果文件不存在抛出异常</li>
+      <li>rs：以同步的方式读取文件</li>
+      <li>rs+：以同步的方式读取和写入文件</li>
+      <li>w：以写入模式打开文件，如果文件不存在则创建</li>
+      <li>wx：类似于w，但是如果文件路径存在，则文件写入失败</li>
+      <li>w+：以读写模式打开文件，如果文件不存在则创建</li>
+      <li>wx+：类似w+，但是如果文件路径存在，则文件读写失败</li>
+      <li>a：以追加模式打开文件，如果文件不存在则创建</li>
+      <li>ax：类似于a，但是如果文件路径存在，则文件追加失败</li>
+      <li>a+：以读取追加模式打开文件，如果文件不存在则创建</li>
+      <li>ax+：类似a+，但是如果文件路径存在，则文件读取追加失败</li>
+    </ol>
+  </li>
+  <li>callback：回调函数，带有两个参数：callback(err,fd)
+    <ol>
+      <li>err是错误对象</li>
+      <li>fd：表示所打开的文件有多少行</li>
+    </ol>
+  </li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s1">'test.js'</span><span class="p">,</span><span class="s1">'r+'</span><span class="p">,(</span><span class="nx">err</span><span class="p">,</span><span class="nx">fd</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">fd</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<h4 id="获取文件信息">获取文件信息</h4>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">stat</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="nx">callback</span><span class="p">)</span>
+</code></pre></div></div>
+<ol>
+  <li>path：文件路径</li>
+  <li>callback：回调函数，带有两个参数：err，states，states是fs.States对象</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">stat</span><span class="p">(</span><span class="s1">'test.js'</span><span class="p">,(</span><span class="nx">err</span><span class="p">,</span><span class="nx">stats</span><span class="p">)</span><span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">stats</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h5 id="stats类中的方法">stats类中的方法</h5>
+<ol>
+  <li>stats.isFile()：如果是文件返回true，否则返回false</li>
+  <li>stats.isDirectory()：如果是目录返回true，否则返回false</li>
+  <li>stats.isBlockDevice()：如果是块设备返回true，否则返回false</li>
+  <li>stats.isCharacterDevice()：如果是字符设备返回true，否则返回false</li>
+  <li>stats.isSymbolicLink()：如果是软链接返回true，否则返回false</li>
+  <li>stats.isFIFO()：如果是FIFO返回true，否则返回false。FIFO是UNIX中的一种特殊类型的命令管道</li>
+  <li>stats.isSocket()：如果是Socket返回true，否则返回false</li>
+</ol>
+
+<h4 id="写入文件">写入文件</h4>
+<h5 id="同步写入文件">同步写入文件</h5>
+<pre><code class="language-JavaScript">fs.writeFileSync('test1.js','fdsafdaf');
+console.log('写入成功');
+</code></pre>
+<h5 id="异步写入文件">异步写入文件</h5>
+<pre><code class="language-JavaScript">fs.writeFile(file,data,{options},callback)
+</code></pre>
+<p>writeFile直接打开文件默认是w模式，所以如果文件存在，该方法写入的内容会覆盖旧的文件内容</p>
+<ol>
+  <li>file：文件名或文件描述符</li>
+  <li>data：要写入文件的数据，可能是String(字符串)或Buffer(缓冲)对象;</li>
+  <li>options：该参数是一个对象，包含{encoding、mode、flag}。默认编码utf8，模式为0666，flag为‘w’</li>
+  <li>callback：回调函数，回调函数只包含出错信息参数(err),在写入失败时返回。</li>
+</ol>
+
+<pre><code class="language-JavaScript">console.log('准备写入文件!');
+fs.writeFile('test1.js','写入成功!!!!!',(err)=&gt; {
+    if(err){
+        return console.error(err);
+    }
+    console.log('数据写入成功!');
+    console.log('-------我是分割线--------');
+    console.log('读取写入的数据');
+    fs.readFile('test1.js',(err,data) =&gt; {
+        if(err){
+            return console.error(err);
+        }
+        console.log('异步读取文件数据:' + data.toString());
+    })
+})
+</code></pre>
+<h4 id="读取文件">读取文件</h4>
+<h5 id="同步读取文件">同步读取文件</h5>
+<pre><code class="language-JavaScript">const data = fs.readFileSync('test1.js');
+console.log(data.toString());
+</code></pre>
+<h5 id="异步读取文件">异步读取文件</h5>
+<h6 id="使用fsreadfilepathoptionscallback">使用fs.readFile(path,{options},callback)</h6>
+<ol>
+  <li>path:读取文件的路径</li>
+  <li>options:{encoding,flag},encoding:null,flag:r</li>
+  <li>callback:err,data;第一个参数是err,第二个参数是读取出的信息。</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">(</span><span class="s1">'test1.js'</span><span class="p">,{</span><span class="na">encoding</span><span class="p">:</span><span class="s1">'utf8'</span><span class="p">},(</span><span class="nx">err</span><span class="p">,</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h6 id="使用fsreadfdbufferoffsetlengthpositioncallback">使用fs.read(fd,buffer,offset,length,position,callback);</h6>
+<ol>
+  <li>fd：通过fs.open()方法返回的文件描述符</li>
+  <li>buffer：数据写入的缓冲区</li>
+  <li>offset：缓冲区写入的写入偏移量</li>
+  <li>length：要从文件中读取的字节数</li>
+  <li>position：文件读取的起始位置，如果position的值为null，则会从当前文件指针的位置读取</li>
+  <li>callback：回调函数，有三个参数err、byteRead、buffer。err为错误信息，byteRead表示读取的字节数，buffer为缓冲区对象</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">.</span><span class="nx">alloc</span><span class="p">(</span><span class="mi">1024</span><span class="p">);</span>
+<span class="nx">fs</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s1">'test1.js'</span><span class="p">,</span><span class="s1">'r+'</span><span class="p">,(</span><span class="nx">err</span><span class="p">,</span><span class="nx">fd</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'打开文件成功！'</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'准备打开文件！'</span><span class="p">);</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span><span class="nx">buffer</span><span class="p">,</span><span class="s1">'0'</span><span class="p">,</span><span class="nx">buffer</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span><span class="mi">0</span><span class="p">,(</span><span class="nx">err</span><span class="p">,</span><span class="nx">byteRead</span><span class="p">,</span><span class="nx">buffer</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+            <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">byteRead</span> <span class="o">+</span> <span class="s1">'字符被读取'</span><span class="p">);</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">buffer</span><span class="p">.</span><span class="nx">toString</span><span class="p">());</span>
+    <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="关闭文件">关闭文件</h4>
+<h5 id="fsclosefdcallback-----异步关闭文件">fs.close(fd,callback)     异步关闭文件</h5>
+<ol>
+  <li>fd：通过fs.open()方法返回的文件描述符</li>
+  <li>callback：回调函数</li>
+</ol>
+
+<pre><code class="language-JavaScript">fs.open('test1.js','r+',(err,fd) =&gt; {
+    if(err){
+        return console.error(err);
+    }
+    console.log('文件打开成功！');
+    fs.close(fd,()=&gt;{
+        console.log('文件关闭成功！');
+    })
+}) 
+</code></pre>
+<h5 id="fsclosesyncfd----同步关闭文件">fs.closeSync(fd)    同步关闭文件</h5>
+<ol>
+  <li>fd：通过fs.open()方法返回的文件描述符</li>
+</ol>
+
+<pre><code class="language-JavaScript">fs.open('test1.js','r+' ,(err,fd) =&gt; {
+    if(err){
+        return console.error(err);
+    }
+    console.log('文件打开成功！');
+    fs.closeSync(fd);
+    console.log('文件关闭成功！');
+}) 
+</code></pre>
+<h4 id="截取文件">截取文件</h4>
+<blockquote>
+  <p>fs.ftruncate(fd,len,callback) 异步截取</p>
+</blockquote>
+
+<ol>
+  <li>fd：通过fs.open()方法返回的文件描述符</li>
+  <li>len：文件内容截取的长度</li>
+  <li>callback：回调函数</li>
+</ol>
+
+<pre><code class="language-JavaScript">fs.open('test1.js','r+',(err,fd) =&gt; {
+    if(err){
+        return console.error(err);
+    }
+    console.log('打开文件成功！');
+    console.log('开始截取文件');
+    fs.ftruncate(fd,10,() =&gt; {
+        console.log('截取文件成功！');
+        fs.close(fd,() =&gt;{
+            console.log('文件关闭成功！');
+        })
+    });
+})
+</code></pre>
+<h4 id="删除文件">删除文件</h4>
+<blockquote>
+  <p>fs.unlink(path,callback);</p>
+</blockquote>
+
+<ol>
+  <li>path：文件路径</li>
+  <li>callback：回调函数</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">writeFile</span><span class="p">(</span><span class="s1">'123.txt'</span><span class="p">,</span><span class="s1">'123345456'</span><span class="p">,(</span><span class="nx">err</span><span class="p">)</span><span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'写入文件成功！'</span><span class="p">);</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">unlink</span><span class="p">(</span><span class="s1">'123.txt'</span><span class="p">,()</span><span class="o">=&gt;</span><span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'删除123.txt'</span><span class="p">);</span>
+    <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="创建目录">创建目录</h4>
+<blockquote>
+  <p>fs.mkdir(path,[options],callback)</p>
+</blockquote>
+
+<ol>
+  <li>path：文件路径</li>
+  <li>options：
+    <ol>
+      <li>recursive：是否以递归的方式创建目录，默认为false</li>
+      <li>mode：设置目录权限，默认为0777</li>
+    </ol>
+  </li>
+  <li>callback：回调函数</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">mkdir</span><span class="p">(</span><span class="s1">'/test1/test/app'</span><span class="p">,{</span><span class="na">recursive</span><span class="p">:</span><span class="kc">true</span><span class="p">},(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'test目录创建成功'</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<h4 id="读取目录">读取目录</h4>
+<blockquote>
+  <p>fs.readdir(path,callback)</p>
+</blockquote>
+
+<ol>
+  <li>path：文件路径</li>
+  <li>callback：回调函数，回调函数带有两个参数，err，files，err为错误信息，files是目录下的文件数组列表</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">fs</span><span class="p">.</span><span class="nx">readdir</span><span class="p">(</span><span class="s1">'test/'</span><span class="p">,(</span><span class="nx">err</span><span class="p">,</span><span class="nx">files</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">err</span><span class="p">){</span>
+        <span class="k">return</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">files</span><span class="p">);</span> <span class="c1">//['test']</span>
+<span class="p">})</span> 
+</code></pre></div></div>
+<h4 id="删除目录">删除目录</h4>
+<blockquote>
+  <p>fs.rmdir(path,callback)</p>
+</blockquote>
+
+<ol>
+  <li>path:文件路径</li>
+  <li>callback：回调函数</li>
+</ol>
+
+<pre><code class="language-JavaScript">fs.rmdir('test/test/',(err) =&gt; {
+    if(err){
+        return err;
+    }
+    console.log('删除成功！');
+})
+</code></pre>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/01/23/node6/" data-toggle="tooltip" data-placement="top" title="Node.js全局方法和工具函数">前一篇<br>
+                        <span>Node.js全局方法和工具函数</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/01/25/express1/" data-toggle="tooltip" data-placement="top" title="express使用指南">后一篇<br>
+                        <span>express使用指南</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Webpack4:Tree-shaking深度解析 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/15/tree-shaking/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#webpack" title="webpack">webpack</a>
+                        
+                    </div>
+                    <h1>Webpack4:Tree-shaking深度解析</h1>
+                    
+                    
+                    <h2 class="subheading">深度分析webpack4：Tree-shaking的使用及webpack-deep-scope-plugin的原理</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 15, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="什么是tree-shaking">什么是Tree-shaking</h3>
+<p>所谓Tree-shaking就是‘摇’的意思，作用是把项目中没必要的模块全部抖掉，用于在不同的模块之间消除无用的代码，可列为性能优化的范畴。</p>
+
+<p>Tree-shaking早期由rollup实现，后来webpack2也实现了Tree-shaking的功能，但是至今还不是很完备。至于为什么不完备，可以看一下<a href="https://juejin.im/post/5a4dc842518825698e7279a9">百度外卖的Tree-shaking原理</a></p>
+
+<h3 id="tree-shading原理">Tree-shading原理</h3>
+<p>Tree-shaking的本质用于消除项目一些不必要的代码。早在编译原理中就有提到DCE(dead code eliminnation)，作用是消除不可能执行的代码，它的工作是使用编辑器判断出某些代码是不可能执行的，然后清除。</p>
+
+<p>Tree-shaking同样的也是消除项目中不必要的代码，但是和DCE又有略不相同。可以说是DCE的一种实现，它的主要工作是应用于模块间，在打包过程中抽出有用的部分，用于完成DCE。</p>
+
+<p>Tree-shaking是依赖ES6模块静态分析的，ES6 module的特点如下：</p>
+<ol>
+  <li>只能作为模块顶层的语句出现</li>
+  <li>import 的模块名只能是字符串常量</li>
+  <li>import binding 是 immutable的</li>
+</ol>
+
+<p>依赖关系确定，与运行时无关，静态分析。正式因为ES6 module的这些特点，才让Tree-shaking更加流行。</p>
+
+<p>主要特点还是依赖于ES6的静态分析，在编译时确定模块。如果是require，在运行时确定模块，那么将无法去分析模块是否可用，只有在编译时分析，才不会影响运行时的状态。</p>
+
+<h3 id="webpack4的tree-shaking">Webpack4的Tree-shaking</h3>
+<p>webpack从第2版本就开始支持Tree-shaking的功能，但是至今也并不能实现的那么完美。凡是具有副作用的模块，webpack的Tree-shaking就歇菜了。</p>
+
+<h4 id="副作用">副作用</h4>
+<p>副作用在我们项目中，也同样是频繁的出现。知道函数式编程的朋友都会知道这个名词。所谓模块(这里模块可称为一个函数)具有副作用，就是说这个模块是不纯的。这里可以引入纯函数的概念。</p>
+<blockquote>
+  <p>对于相同的输入就有相同的输出，不依赖外部环境，也不改变外部环境。</p>
+</blockquote>
+
+<p>符合上述就可以称为纯函数，不符合就是不纯的，是具有副作用的，是可能对外界造成影响的。</p>
+
+<p>webpack自身的Tree-shaking不能分析副作用的模块。以lodash-es这个模块来举个例子</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//test.js</span>
+<span class="k">import</span> <span class="nx">_</span> <span class="k">from</span> <span class="s2">"lodash-es"</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">func1</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">){</span>
+    <span class="k">return</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">const</span> <span class="nx">func2</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">){</span>
+    <span class="k">return</span> <span class="nx">value</span><span class="o">=</span><span class="kc">null</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="p">{</span>
+    <span class="nx">func1</span><span class="p">,</span>
+    <span class="nx">func2</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="c1">//index.js</span>
+<span class="k">import</span> <span class="p">{</span><span class="nx">func2</span><span class="p">}</span> <span class="k">from</span> <span class="s1">'./test.js'</span>
+<span class="nx">func2</span><span class="p">()</span>
+</code></pre></div></div>
+<p>上述代码在test.js中引入lodash-es,在func1中使用了loadsh，并且这里不符合纯函数的概念，它是具有副作用的。func2是一个纯函数。</p>
+
+<p>在index.js中只引入了func2，并且使用了func2，可见整个代码的执行是和func1是没有任何关系的。我们通过生产环境打包一下试试看(Tree-shaking只在生产环境生效)</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/15/168eeff584fcb43d?w=654&amp;h=145&amp;f=png&amp;s=47047" alt="" />
+main.js 91.7KB，可见这个结果是符合我们的预期的，因为func1函数的副作用，webpack自身的Tree-shaking并没有检测到这里有没必要的模块。解决办法还是用的，webpack的插件系统是很强大的。</p>
+
+<h3 id="webpack-deep-scope-plugin">webpack-deep-scope-plugin</h3>
+<p>webpack-deep-scope-plugin是一位中国同胞(学生)在Google夏令营，在导师Tobias带领下写的一个webpack插件。(此时慢慢的羡慕)</p>
+
+<p>这个插件主要用于填充webpack自身Tree-shaking的不足，通过作用域分析来消除无用的代码。</p>
+<h4 id="插件的原理">插件的原理</h4>
+<p>这个插件是基于作用域分析的，那么都有什么样的作用域？</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// module scope start</span>
+
+<span class="c1">// Block</span>
+
+<span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// Class</span>
+
+<span class="kd">class</span> <span class="nx">Foo</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// If else</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="kc">true</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+   
+<span class="p">}</span> <span class="cm">/* &lt;- scope end */</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+  
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// For</span>
+
+<span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// Catch</span>
+
+<span class="k">try</span> <span class="p">{</span>
+
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// Function</span>
+
+<span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// Scope</span>
+
+<span class="k">switch</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// &lt;- scope start</span>
+<span class="p">}</span> <span class="c1">// &lt;- scope end</span>
+
+<span class="c1">// module scope end</span>
+</code></pre></div></div>
+<p>对于ES6模块来说，上面作用域只有function和class是可以被导出的，其他的作用域可以称之为function和class的子作用域并不能被导出实际上归属于父作用域的。</p>
+
+<p>插件通过分析代码的作用域，进而得到作用域与作用域之间的关系。</p>
+<h4 id="分析作用域">分析作用域</h4>
+<p>分析代码的作用域的基础是建立做AST(Abstract Syntax Tree)抽象语法树上面的。这个可以通过<a href="https://github.com/estools/escope">escope</a>来完成。
+<img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef0eacbb91a10?w=600&amp;h=337&amp;f=gif&amp;s=384877" alt="" /></p>
+
+<p>拿到解析完的AST抽象语法树，利用图的深度优先遍历找到哪些作用域是可以被使用到的，哪些作用域是不可以被使用到的。从而分析作用域之间的关系和导出变量之间的关系。进而执行模块消除。</p>
+
+<h4 id="插件的不足">插件的不足</h4>
+<p>JavaScript中还是有一些代码是不会消去的。</p>
+<h5 id="根作用域的引用">根作用域的引用</h5>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">isNull</span> <span class="p">}</span> <span class="k">from</span> <span class="s1">'lodash-es'</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">scope</span><span class="p">(...</span><span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">isNull</span><span class="p">(...</span><span class="nx">args</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+<p>在根作用域引用到的作用域不会被消除。</p>
+<h4 id="给变量重新赋值">给变量重新赋值</h4>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">_</span> <span class="k">from</span> <span class="s2">"lodash-es"</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">func1</span>
+<span class="nx">func1</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">){</span>
+    <span class="k">return</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">const</span> <span class="nx">func2</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">){</span>
+    <span class="k">return</span> <span class="nx">value</span><span class="o">=</span><span class="kc">null</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="p">{</span>
+    <span class="nx">func1</span><span class="p">,</span>
+    <span class="nx">func2</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>上述代码中先定义了func1，然后又给func1赋值，这样缺少了数据流分析，同样插件也是不可以的。</p>
+
+<h4 id="纯函数调用">纯函数调用</h4>
+<p>引用作者的例子</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">_curry1</span> <span class="k">from</span> <span class="s1">'./internal/_curry1'</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">curryN</span> <span class="k">from</span> <span class="s1">'./curryN'</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">max</span> <span class="k">from</span> <span class="s1">'./max'</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">pluck</span> <span class="k">from</span> <span class="s1">'./pluck'</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">allPass</span> <span class="o">=</span> <span class="cm">/*#__PURE__*/</span><span class="nx">_curry1</span><span class="p">(</span><span class="kd">function</span> <span class="nx">allPass</span><span class="p">(</span><span class="nx">preds</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">curryN</span><span class="p">(</span><span class="nx">reduce</span><span class="p">(</span><span class="nx">max</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">pluck</span><span class="p">(</span><span class="s1">'length'</span><span class="p">,</span> <span class="nx">preds</span><span class="p">)),</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">preds</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nx">idx</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">preds</span><span class="p">[</span><span class="nx">idx</span><span class="p">].</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="kr">arguments</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="nx">idx</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+<span class="k">export</span> <span class="k">default</span> <span class="nx">allPass</span><span class="p">;</span>
+</code></pre></div></div>
+<p>当一个匿名函数被包在一个函数调用中(IIFE也是如此)，那么插件是无法分析的。但是如果加上/*#__PURE__*/注释的话，这个插件会把这个函数调用当作一个独立的域，tree-shaking是可以生效的。</p>
+
+<h3 id="探讨的一些问题">探讨的一些问题</h3>
+<p>我们都知道在这个ES6泛滥的时代，ES6的代码在项目中出现已经很广泛。（先不考虑线上环境打包成ES5）。上面提到插件的利用作用域来分析。能导出的作用域只有class和funciton。function的情况在上面已经说过，现在来探讨一下class的情况。</p>
+
+<h4 id="no-plugin">no plugin</h4>
+<p>当不使用插件的时候，我们来看一下会不会Tree-shaking，预期是会被Tree-shaking。书写下面这样一段简单的代码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">Test</span><span class="p">{</span>
+    <span class="nx">init</span><span class="p">(</span><span class="nx">value</span><span class="p">){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'test init'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span> <span class="p">{</span>
+    <span class="nx">Test</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef2d92f903b42?w=1050&amp;h=190&amp;f=png&amp;s=34459" alt="" />
+我们发现在没有使用插件的情况下，被Tree-shaking了。预期相同。</p>
+
+<h4 id="no-plugin--副作用">no plugin + 副作用</h4>
+<p>当我们在不适用插件的情况下，并且引入副作用，观察一下会不会打包，预期是不会打包。书写下面代码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">Test</span><span class="p">{</span>
+    <span class="nx">init</span><span class="p">(</span><span class="nx">value</span><span class="p">){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'test init'</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span> <span class="p">{</span>
+    <span class="nx">Test</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef31758e44cf2?w=573&amp;h=135&amp;f=png&amp;s=38466" alt="" />
+观察打包结果，main.js 91.7KB，并没有被Tree-shaking，符合预期的结果。</p>
+<h4 id="plugin--副作用">plugin + 副作用</h4>
+<p>当我们使用插件并且代码中存在副作用的情况下，观察打包情况。由于上面的插件原理的铺垫，我们预期这次是可以Tree-shaking的。利用上例代码来测试。
+<img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef360918a3bfd?w=625&amp;h=105&amp;f=png&amp;s=29145" alt="" />
+我们观察可以看出main.js 6.78KB,Tree-shaking生效。</p>
+
+<h4 id="plugin--副作用--babel">plugin + 副作用 + babel</h4>
+<p>由于用户浏览器对ES6支持度不够的原因，线上的代码不能全是ES6的，有时候我们要把ES6的代码打包成ES5的，放到线上环境来执行。利用上例代码来测试。
+<img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef3bab85a4bc3?w=657&amp;h=116&amp;f=png&amp;s=58155" alt="" /></p>
+
+<p>？？？ 什么鬼，我没有用到它，为什么这么大？？？  一串懵逼</p>
+
+<h3 id="成了babel败了babel">成了babel，败了babel</h3>
+<p>懵逼懵逼，babel成就了线上生产环境，但失去了Tree-shaking优化。我们来看看怎么回事。</p>
+<h4 id="没有副作用的情况">没有副作用的情况</h4>
+<p>当去除调副作用的时候我们来打包一下。
+<img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef3fa0a1ec0c1?w=801&amp;h=184&amp;f=png&amp;s=26154" alt="" />
+没有找到test init Tree-shaking生效。为什么呢？我们使用babel线上工具编译一下源代码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"use strict"</span><span class="p">;</span>
+
+<span class="kd">function</span> <span class="nx">_instanceof</span><span class="p">(</span><span class="nx">left</span><span class="p">,</span> <span class="nx">right</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="nx">right</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="k">typeof</span> <span class="nb">Symbol</span> <span class="o">!==</span> <span class="s2">"undefined"</span> <span class="o">&amp;&amp;</span> <span class="nx">right</span><span class="p">[</span><span class="nb">Symbol</span><span class="p">.</span><span class="nx">hasInstance</span><span class="p">])</span> <span class="p">{</span>
+         <span class="k">return</span> <span class="nx">right</span><span class="p">[</span><span class="nb">Symbol</span><span class="p">.</span><span class="nx">hasInstance</span><span class="p">](</span><span class="nx">left</span><span class="p">);</span> 
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+             <span class="k">return</span> <span class="nx">left</span> <span class="k">instanceof</span> <span class="nx">right</span><span class="p">;</span> 
+            <span class="p">}</span> 
+        <span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_classCallCheck</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">Constructor</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_instanceof</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">Constructor</span><span class="p">))</span> <span class="p">{</span> 
+        <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span><span class="p">(</span><span class="s2">"Cannot call a class as a function"</span><span class="p">);</span> 
+    <span class="p">}</span> 
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">props</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">props</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span> 
+        <span class="kd">var</span> <span class="nx">descriptor</span> <span class="o">=</span> <span class="nx">props</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span> 
+        <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">=</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">||</span> <span class="kc">false</span><span class="p">;</span> 
+        <span class="nx">descriptor</span><span class="p">.</span><span class="nx">configurable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> 
+        <span class="k">if</span> <span class="p">(</span><span class="s2">"value"</span> <span class="k">in</span> <span class="nx">descriptor</span><span class="p">)</span> 
+            <span class="nx">descriptor</span><span class="p">.</span><span class="nx">writable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> 
+        <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">key</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">);</span> 
+    <span class="p">}</span> 
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="nx">protoProps</span><span class="p">)</span> 
+        <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">);</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="nx">staticProps</span><span class="p">)</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">);</span> 
+    <span class="k">return</span> <span class="nx">Constructor</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">Test</span> <span class="o">=</span>
+    <span class="cm">/*#__PURE__*/</span>
+    <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">function</span> <span class="nx">Test</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">_classCallCheck</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">Test</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Test</span><span class="p">,</span> <span class="p">[{</span>
+            <span class="na">key</span><span class="p">:</span> <span class="s2">"init"</span><span class="p">,</span>
+            <span class="na">value</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">init</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"test init"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}]);</span>
+
+        <span class="k">return</span> <span class="nx">Test</span><span class="p">;</span>
+    <span class="p">}();</span>
+</code></pre></div></div>
+<p>上面可以看到最新的babel和webpack有了契合，在Test立即执行函数的地方使用了 /*#__PURE__*/(忘记可以往上看)，让下面的IIFE变成可分析的，成功了使用了Tree-shaking。</p>
+
+<h4 id="有副作用的情况下">有副作用的情况下</h4>
+<p>上面探讨情况的时候就得知有副作用的情况下，不可以被打包的。ES6编译代码如下。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"use strict"</span><span class="p">;</span>
+
+<span class="kd">function</span> <span class="nx">_instanceof</span><span class="p">(</span><span class="nx">left</span><span class="p">,</span> <span class="nx">right</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="nx">right</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="k">typeof</span> <span class="nb">Symbol</span> <span class="o">!==</span> <span class="s2">"undefined"</span> <span class="o">&amp;&amp;</span> <span class="nx">right</span><span class="p">[</span><span class="nb">Symbol</span><span class="p">.</span><span class="nx">hasInstance</span><span class="p">])</span> <span class="p">{</span>
+         <span class="k">return</span> <span class="nx">right</span><span class="p">[</span><span class="nb">Symbol</span><span class="p">.</span><span class="nx">hasInstance</span><span class="p">](</span><span class="nx">left</span><span class="p">);</span> 
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+             <span class="k">return</span> <span class="nx">left</span> <span class="k">instanceof</span> <span class="nx">right</span><span class="p">;</span> 
+            <span class="p">}</span> 
+        <span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_classCallCheck</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">Constructor</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_instanceof</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">Constructor</span><span class="p">))</span> <span class="p">{</span> 
+        <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span><span class="p">(</span><span class="s2">"Cannot call a class as a function"</span><span class="p">);</span> 
+    <span class="p">}</span> 
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">props</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">props</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span> 
+        <span class="kd">var</span> <span class="nx">descriptor</span> <span class="o">=</span> <span class="nx">props</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span> 
+        <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">=</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">||</span> <span class="kc">false</span><span class="p">;</span> 
+        <span class="nx">descriptor</span><span class="p">.</span><span class="nx">configurable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> 
+        <span class="k">if</span> <span class="p">(</span><span class="s2">"value"</span> <span class="k">in</span> <span class="nx">descriptor</span><span class="p">)</span> 
+            <span class="nx">descriptor</span><span class="p">.</span><span class="nx">writable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> 
+        <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">key</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">);</span> 
+    <span class="p">}</span> 
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="nx">protoProps</span><span class="p">)</span> 
+        <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">);</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="nx">staticProps</span><span class="p">)</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">);</span> 
+    <span class="k">return</span> <span class="nx">Constructor</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">Test</span> <span class="o">=</span>
+    <span class="cm">/*#__PURE__*/</span>
+    <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">function</span> <span class="nx">Test</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">_classCallCheck</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">Test</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Test</span><span class="p">,</span> <span class="p">[{</span>
+            <span class="na">key</span><span class="p">:</span> <span class="s2">"init"</span><span class="p">,</span>
+            <span class="na">value</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">init</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"test init"</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}]);</span>
+
+        <span class="k">return</span> <span class="nx">Test</span><span class="p">;</span>
+    <span class="p">}();</span>
+</code></pre></div></div>
+<p>这里虽然bable新版契合了webpack，但是还是有一些问题。自己也没有找出是哪里除了问题，作者说JavaScript代码还是有一些是不可以清除的，也许就出现到这里。提供一个作者的插件<a href="https://diverse.space/webpack-deep-scope-demo/">Demo</a>。</p>
+
+<h3 id="babel的解决方案">babel的解决方案</h3>
+<p>无论是ES6，还是ES5，Tree-shaking不能生效的原因总的归根结底还是因为代码副作用的问题。可想而知代码的书写规范是多么重要。这里我所想出的解决方案有两种。</p>
+<h4 id="1代码的书写规范尽量避免副作用">1.代码的书写规范，尽量避免副作用。</h4>
+<p>书写代码过程中尽量使用纯函数的方式来写代码，保持书写规范，不让代码有副作用。例如把class类引用的副作用改成纯的。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">Test</span><span class="p">{</span>
+    <span class="nx">init</span><span class="p">(</span><span class="nx">value</span><span class="p">,</span><span class="nx">_</span><span class="p">){</span>  <span class="c1">//参数引入lodash模块</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'test init'</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span><span class="p">{</span>
+    <span class="nx">Test</span><span class="err">，</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef51c818048e1?w=651&amp;h=142&amp;f=png&amp;s=45603" alt="" /></p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/15/168ef538a650c0bb?w=562&amp;h=198&amp;f=png&amp;s=19899" alt="" />
+可以看出，没有副作用的ES6代码编译成ES5，Tree-shaking也是生效的。</p>
+<h4 id="2灵活使用es6代码">2.灵活使用ES6代码</h4>
+<p>两套代码。当浏览器支持的时候，就使用ES6的代码，ES5的代码。此方案可参考<a href="http://blog.ctomorrow.top/2019/02/05/es6-use/">浏览器支持ES6的最优解决方案</a></p>
+
+<h3 id="总结">总结</h3>
+<p>项目中难免会一些用不到的模块占位置影响我们的项目，Tree-shaking的出现也为开发者在性能优化方面提供了非常大的帮助，灵活使用Tree-shaking才能让Tree-shaking发挥作用，处理好项目中代码的副作用可以使项目更加的完美。</p>
+
+<h3 id="引用文章">引用文章</h3>
+<p><a href="https://diverse.space/2018/05/better-tree-shaking-with-scope-analysis">webpack 如何通过作用域分析消除无用代码</a></p>
+
+<p><a href="https://juejin.im/post/5a4dc842518825698e7279a9">Tree-Shaking性能优化实践 - 原理篇</a></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/12/koa2-vue/" data-toggle="tooltip" data-placement="top" title="koa2+Vue构建SSR+CSR项目">前一篇<br>
+                        <span>koa2+Vue构建SSR+CSR项目</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/15/rollup/" data-toggle="tooltip" data-placement="top" title="Rollup简单入门">后一篇<br>
+                        <span>Rollup简单入门</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

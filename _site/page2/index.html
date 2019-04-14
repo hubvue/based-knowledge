@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/page2/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Page Header -->
+<header class="intro-header" style="background-image: url('img/bg/bg_index.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
+                <div class="site-heading">
+                    <h1>Tomorrow</h1>
+                    <!--<hr class="small">-->
+                    <span class="subheading">我学了多少技术   读了多少本书  </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row">
+        
+
+<!-- USE SIDEBAR -->
+    <!-- PostList Container -->
+    		<div class="
+                col-lg-8 col-lg-offset-1
+                col-md-8 col-md-offset-1
+                col-sm-12
+                col-xs-12
+                postlist-container
+            ">
+    			
+<div class="post-preview">
+    <a href="/2019/03/31/vue-component-asyncdata/">
+        <h2 class="post-title">
+            Vue组件与异步获取数据的方式
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue定义组件，异步获取数据
+        </h3>
+        
+        <div class="post-content-preview">
+            定义一个组件
+声明组件使用Vue.component方法，这个方法有两个参数，一个是定义组件的名字，另一个是一个对象，相当于实例化Vue所传入的对象。
+Vue.component('my-app',{
+    template : "&lt;h1&gt;Hello Vue&lt;/h1&gt;"  //template 是组件模板
+})
+
+上述就定义好了一个组件，使用直接在把&lt;my-a...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/31/vue-style/">
+        <h2 class="post-title">
+            Vue基础-样式转换
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue样式转换相关：style转换与class转换
+        </h3>
+        
+        <div class="post-content-preview">
+            样式转换
+前端如果不能交互改变css样式的话，那么连咸鱼都不如。
+
+vue改变样式有两种方式：一种是通过内联style改变；一种是通过class改变。
+内联style改变
+我们都知道v-bind可以为DOM元素绑定属性，既然可以绑定属性，那么就可以绑定style属性，通过style来改变样式。
+
+当DOM元素中同时存在style和v-bind:style的时候，vue会自动的将两个样式进行一...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/31/vue-filters/">
+        <h2 class="post-title">
+            Vue初探-filter过滤器
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue filter过滤器相关知识
+        </h3>
+        
+        <div class="post-content-preview">
+            filter过滤器
+filter相当于一种规则，我们定义一种filter规则，在使用双大括号写表达式的时候，把规则放在表达式后面，使用|隔开。
+
+filter过滤器中写的是方法，方法有两个参数：
+
+  第一个参数：value值是表达式的值。
+  第二个参数：是一个boolean值，可以在双大括号中传入。
+
+
+filters可以同时对一个表达式定义多个规则，按照顺序执行。
+&lt;div id...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/31/computed-watch/">
+        <h2 class="post-title">
+            Vue初探-计算属性与watch监听
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue计算属性及watch监听相关知识整理
+        </h3>
+        
+        <div class="post-content-preview">
+            计算属性
+在Vue构造传的对象中，data表示数据，当我们在视图中如果想要数据进行操作，直接在双大括号里写是很麻烦的，所以就有了计算属性。计算属性也是和data相同是Vue构造时传入对象的一个属性，它是一个对象computed。
+
+计算属性会分析计算属性中的方法，当外部改变的值与计算属性中的函数的值有依赖关系的话，会执行；没有依赖关系就就不会执行。
+
+计算属性执行完之后会产生一个缓存，当下次...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/31/vue-start/">
+        <h2 class="post-title">
+            Vue初探-基础
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue初探基础知识
+        </h3>
+        
+        <div class="post-content-preview">
+            初探Vue
+前端一直是一个发展迅速的方向，从经典的jQuery操作DOM到数据驱动视图开发。三大框架之一的Vue，也一直是一个比较热门的话题。当时Vue的作者尤雨溪试图使用definedProperty尝试做一个数据驱动的小项目，随着项目的变大逐渐变成了如今的Vue。
+
+Vue是一套用于构建用户界面的渐进式框架。Vue.js提供了MVVM风格的双向数据绑定，也就是我们所说的MVVM,MVVM...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/31/directive-system/">
+        <h2 class="post-title">
+            Vue初探-指令系统
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue指令系统相关知识点及例子
+        </h3>
+        
+        <div class="post-content-preview">
+            Vue指令系统
+Vue含有强大的指令系统，Vue指令就是告诉这段DOM元素要做什么，通过指令可以为DOM元素绑定属性值及绑定事件等等。
+指令语法
+
+  v-指令名字 + : + 指令的参数 = 指令的表达式
+
+
+例如：为url标签添加href属性跳转到百度
+&lt;div id="app"&gt;
+    //v-bind指令是用来为DOM元素绑定属性。
+    &lt;a v-bind:h...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/24/react-event/">
+        <h2 class="post-title">
+            React事件表
+        </h2>
+        
+        <h3 class="post-subtitle">
+            总结一下事件表
+        </h3>
+        
+        <div class="post-content-preview">
+            总结一下事件表，持续更新。
+触摸事件
+
+  onTouchCancel
+  onTouchEnd
+  onTouchMove
+  onTouchStart
+
+
+键盘事件
+
+  onKeyDown
+  onKeyPress
+  onKeyUp
+
+
+剪切事件
+
+  onCopy
+  onCut
+  onPaste
+
+
+焦点事件
+
+  onFocus
+  onBlur
+
+
+UI元素
+
+  onSc...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 24, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/24/react-contro-nocontro/">
+        <h2 class="post-title">
+            React可控组件与不可控组件
+        </h2>
+        
+        <h3 class="post-subtitle">
+            学习React的可控组件与不可控组件
+        </h3>
+        
+        <div class="post-content-preview">
+            不可控组件
+当一个表单元素设置了defaultValue属性的时候，那么这个组件就变成了不可控组件。
+
+为什么这么说呢？
+
+defaultValue属性设置的值大多数情况下是不允许更改的，由于React的所有的View是基于状态的改变而动态渲染的，而设置了defaultValue是不允许更改，所以就可以称组件为不可控组件。
+
+export default class App extends ...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 24, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/24/react-left/">
+        <h2 class="post-title">
+            React 生命周期
+        </h2>
+        
+        <h3 class="post-subtitle">
+            学习React生命周期
+        </h3>
+        
+        <div class="post-content-preview">
+            
+  每个软件都有从开始创建到运行到最终销毁的一段路程，这可以说成是软件的生命周期。
+
+
+React生命周期
+React的核心是基于组件的，React的组件也是有声明周期的，和大部分软件相同，它同样具有从开始创建到运行再到最终销毁的这段路程。
+
+
+  React组件的生命周期分为三个阶段：挂载 -&gt; 更新 -&gt; 卸载。
+
+
+每个阶段有与之相对应的钩子函数。
+
+
+上图是官网的一张生...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 24, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/23/react-props-state/">
+        <h2 class="post-title">
+            React props and state
+        </h2>
+        
+        <h3 class="post-subtitle">
+            React中属性和状态学习及二者之间的比较
+        </h3>
+        
+        <div class="post-content-preview">
+            Props
+Props(properties)：属性，可以说组件是React的核心了，如果把组件比喻成一个管道，那么props就相当于输入。
+
+props可以定义在注册组件的地方，也可以在组件内部定义默认属性，无论在哪里定义，props都是只读的。
+
+props可以应用于JSX中html的元素上，自定义组件的元素上(相当于给子组件传值)，也可以应用于值。
+
+定义默认props
+ES5和ES6...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 23, 2019
+    </p>
+</div>
+<hr>
+
+
+<!-- Pager -->
+
+<ul class="pager">
+    
+    <li class="previous">
+        <a href="/">&larr; 上一页</a>
+    </li>
+    
+    
+    <li class="next">
+        <a href="/page3">下一页 &rarr;</a>
+    </li>
+    
+</ul>
+
+
+    		</div>
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-3 col-lg-offset-0
+                col-md-3 col-md-offset-0
+                col-sm-12
+                col-xs-12
+                sidebar-container
+            ">
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">热门标签</a></h5>
+                    <div class="tags">
+                        
+                            
+                                <a href="/tags/#JavaScript" title="JavaScript" rel="7">
+                                    JavaScript
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#webpack" title="webpack" rel="2">
+                                    webpack
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#NodeJS" title="NodeJS" rel="10">
+                                    NodeJS
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Express" title="Express" rel="5">
+                                    Express
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#网络" title="网络" rel="4">
+                                    网络
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#前端工程化" title="前端工程化" rel="8">
+                                    前端工程化
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Linux" title="Linux" rel="4">
+                                    Linux
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#性能优化" title="性能优化" rel="3">
+                                    性能优化
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#React" title="React" rel="7">
+                                    React
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Vue" title="Vue" rel="12">
+                                    Vue
+                                </a>
+                            
+                        
+                            
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Short About -->
+                <section class="visible-md visible-lg">
+                    <hr><h5><a href="/about/">关于我</a></h5>
+                    <div class="short-about">
+                        
+                            <img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b510d7c0bd79?imageView2/1/w/180/h/180/q/85/format/webp/interlace/1" />
+                        
+                        
+                            <p>一位不知名的小前端</p>
+                        
+                        <!-- SNS Link -->
+                        <ul class="list-inline">
+                            
+                            <li>
+                                <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa  fa-stack-1x fa-inverse">C</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            <!--  -->
+                            
+                            <li>
+                                <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-stack-1x fa-inverse">掘</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            
+                            <li>
+                                <a target="_blank" href="https://github.com/hubvue">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </section>
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>友情链接</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="https://www.leer.live/">知足常乐的博客</a></li>
+                    
+                </ul>
+                
+    		</div>
+        
+	</div>
+</div>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

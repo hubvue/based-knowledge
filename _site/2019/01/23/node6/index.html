@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Node.js全局方法和工具函数 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/01/23/node6/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#NodeJS" title="NodeJS">NodeJS</a>
+                        
+                    </div>
+                    <h1>Node.js全局方法和工具函数</h1>
+                    
+                    
+                    <h2 class="subheading">Node全局属性及常用方法util解析</h2>
+                    
+                    <span class="meta">Posted by wang chong on January 23, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="全局对象global">全局对象global</h3>
+<p>JavaScript中有一个特殊的对象，称为全局对象(Global Object) 它以及其所有属性都可以在程序的任何地方访问。即全局变量。在浏览器中全局对象是window，而在node中全局对象是global，所有的全局变量(global本身除外)都是global对象的属性。</p>
+<blockquote>
+  <p>永远使用声明变量以避免引入全局变量，因为全局变量会污染 命令空间，提高代码的耦合风险。</p>
+</blockquote>
+
+<h3 id="__filename">__filename</h3>
+<p>__filename表示当前正在执行的脚本的文件名，它将输出文件所在位置的绝对路径，且和命令行参数所指的文件名不一定相同.如果在模块中，返回的值是模块的路径。</p>
+<pre><code class="language-JavaScript">console.log(__filename);    ///home/chong/桌面/Code/Code/Two/node/node9.js
+</code></pre>
+<h3 id="__dirname">__dirname</h3>
+<p>__dirname表示当前执行脚本所在的目录</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">);</span>     <span class="c1">///home/chong/桌面/Code/Code/Two/node</span>
+</code></pre></div></div>
+<h3 id="settimeoutcbms">setTimeout(cb,ms)</h3>
+<p>和浏览器中执行的js代码的setTimeout相同，在指定的毫秒后执行指定函数cb，setTimeout()只执行一次指定函数。返回一个定时器对象。</p>
+<pre><code class="language-JavaScript">const timer = setTimeout(()=&gt; {
+    console.log('time');
+},2000)
+console.log(timer);
+</code></pre>
+<h3 id="cleartimeout">clearTimeout()</h3>
+<p>clearTimeout(e) 全局函数用于停止一个之前通过setTimeout创建的定时器，参数t是通过setTimeoit函数创建的定时器对象。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">timer</span> <span class="o">=</span> <span class="nx">setTimeout</span><span class="p">(()</span><span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'timer'</span><span class="p">);</span>
+<span class="p">},</span><span class="mi">2000</span><span class="p">)</span>
+<span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">timer</span><span class="p">);</span>
+</code></pre></div></div>
+<h3 id="setintervalcbms">setInterval(cb,ms)</h3>
+<p>setInterval(cb,ms)全局函数在指定的毫秒数后执行指定函数(cb),返回一个定时器对象，可以使用clearInterval函数清楚定时器，setInterval方法会不停的调用函数，直到clearInterval被调用或窗口被关闭。</p>
+<pre><code class="language-JavaScript">setInterval(()=&gt;{
+    console.log('hello');
+},1000);
+</code></pre>
+<h3 id="console方法">console方法</h3>
+<p>console方法用于提供控制台的标准输出。</p>
+<h4 id="consolelogmessage">console.log(message)</h4>
+<p>打印传统的信息</p>
+<pre><code class="language-JavaScript">console.log('hello world');
+</code></pre>
+<h4 id="consoleerrorerr">console.error(err)</h4>
+<p>输出错误信息的。</p>
+<pre><code class="language-JavaScript">console.error('error');
+</code></pre>
+<h4 id="consolewarn">console.warn()</h4>
+<p>输出警告信息</p>
+<pre><code class="language-JavaScript">console.warn('这是一个警告');
+</code></pre>
+<h4 id="consoledirobj">console.dir(obj)</h4>
+<p>用于对一个对象进行检查(inspect),以便阅读和打印的格式显示</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">name</span> <span class="p">:</span> <span class="mi">123</span><span class="p">,</span>
+    <span class="na">age</span> <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">dir</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
+</code></pre></div></div>
+<h4 id="consoletimelabel">console.time(label)</h4>
+<p>输出时间，表示计时开始</p>
+<pre><code class="language-JavaScript">console.time('first');
+</code></pre>
+<h4 id="consoletimeendlabel">console.timeEnd(label)</h4>
+<p>结束时间，表示计时结束。</p>
+<pre><code class="language-JavaScript">console.timeEnd('first');
+</code></pre>
+<h4 id="consoletrace">console.trace()</h4>
+<p>当前执行的代码在堆栈中的调用路径，这个测试函数运行很有帮助。只要给想测试的函数里面加入console.trace就可以了。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">foo</span><span class="p">(){</span>
+    <span class="nx">bar</span><span class="p">();</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">bar</span><span class="p">(){</span>
+    <span class="nx">baz</span><span class="p">()</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">baz</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">trace</span><span class="p">();</span>
+<span class="p">}</span>
+<span class="nx">foo</span><span class="p">();</span>
+</code></pre></div></div>
+<h4 id="consoleassert">console.assert()</h4>
+<p>断言：用于判断某个表达式或变量是否为真，有两个参数，第一个是表达式，第二个是字符串，当第一个表达式为false才会输出第二个参数。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">assert</span><span class="p">(</span><span class="kc">true</span><span class="p">,</span><span class="s1">'message'</span><span class="p">)</span> <span class="c1">//不会输出</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">assert</span><span class="p">(</span><span class="kc">false</span><span class="p">,</span><span class="s1">'message'</span><span class="p">)</span> <span class="c1">//输出message</span>
+</code></pre></div></div>
+<h3 id="常用工具">常用工具</h3>
+<p>util是一个Nodejs核心模块，提供常用函数的集合，用于弥补核心JavaScript的功能，过于精简的不足。</p>
+<h4 id="引入util">引入util</h4>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">util</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'util'</span><span class="p">);</span>
+</code></pre></div></div>
+<h4 id="utilinherits">util.inherits</h4>
+<p>util.inherits(constructor,superContructor)是一个实现对象间原型继承的函数。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">Car</span><span class="p">(){</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">'wang'</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">Curze</span><span class="p">(){</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="s1">'curze'</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nx">util</span><span class="p">.</span><span class="nx">inherits</span><span class="p">(</span><span class="nx">Curze</span><span class="p">,</span><span class="nx">Car</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">curze</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Curze</span><span class="p">();</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">curze</span><span class="p">.</span><span class="nx">__proto__</span><span class="p">.</span><span class="nx">__proto__</span><span class="p">);</span>     <span class="c1">//Car</span>
+</code></pre></div></div>
+<h4 id="utilinspect">util.inspect</h4>
+<p>util.inspect(object,[showHidden],[depth],[colors])是一个将任意对象转化程字符串的方法，通常用于调试和错误输出。它至少接收一个参数object，即要转换的对象。</p>
+<ol>
+  <li>showHidden是一个可选参数，如果值为true，将会输出更多的隐藏信息。</li>
+  <li>depth表示最大递归层数，如果对象很复杂，你可以指定层数以控制输出信息的多少。如果不指定depth，默认会递归两层，指定为null表示不限递归赠书完整遍历对象。</li>
+  <li>如果color值为true，输出格式将会一ANSI颜色编码，通常用于在终端显示更漂亮的效果。</li>
+</ol>
+
+<blockquote>
+  <p>特别要指出的是，util.inspect并不会简单的直接把对象转换为字符串，即使对象定义了toString方法也不会调用。</p>
+</blockquote>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">name</span> <span class="p">:</span> <span class="s1">'wang'</span><span class="p">,</span>
+    <span class="na">age</span> <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="na">color</span><span class="p">:</span> <span class="s1">'red'</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">util</span><span class="p">.</span><span class="nx">inspect</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span><span class="kc">true</span><span class="p">,</span><span class="kc">null</span><span class="p">,</span><span class="kc">true</span><span class="p">));</span> 
+</code></pre></div></div>
+<h4 id="utilisarrayobject">util.isArray(object)</h4>
+<p>如果给定的参数object是一个数组返回true，否则返回false</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">util</span><span class="p">.</span><span class="nx">isArray</span><span class="p">([]));</span>      <span class="c1">//true</span>
+</code></pre></div></div>
+<h4 id="utilisregexpobject">util.isRegExp(object)</h4>
+<p>如果给定的参数object是一个正则表达式返回true，否则返回false</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">util</span><span class="p">.</span><span class="nx">isRegExp</span><span class="p">(</span><span class="sr">/</span><span class="se">[]</span><span class="sr">/g</span><span class="p">));</span>  <span class="c1">//true</span>
+</code></pre></div></div>
+<h4 id="utilisdateobject">util.isDate(object)</h4>
+<p>如果给定的参数object是一个日期返回true，否则返回false</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">util</span><span class="p">.</span><span class="nx">isDate</span><span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">()));</span>   <span class="c1">//true</span>
+</code></pre></div></div>
+<h4 id="utiliserrorobject">util.isError(object)</h4>
+<p>如果给定的参数object是一个错误对象返回true，否则返回false</p>
+<pre><code class="language-JavaScript">console.log(util.isError(new Error()));
+</code></pre>
+<h4 id="一个更强大的功能库underscorejs">一个更强大的功能库–underscore.js</h4>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/01/23/node5/" data-toggle="tooltip" data-placement="top" title="NodeJS路由及请求参数解析">前一篇<br>
+                        <span>NodeJS路由及请求参数解析</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/01/23/node7/" data-toggle="tooltip" data-placement="top" title="Node.js文件系统">后一篇<br>
+                        <span>Node.js文件系统</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/page6/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Page Header -->
+<header class="intro-header" style="background-image: url('img/bg/bg_index.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
+                <div class="site-heading">
+                    <h1>Tomorrow</h1>
+                    <!--<hr class="small">-->
+                    <span class="subheading">我学了多少技术   读了多少本书  </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row">
+        
+
+<!-- USE SIDEBAR -->
+    <!-- PostList Container -->
+    		<div class="
+                col-lg-8 col-lg-offset-1
+                col-md-8 col-md-offset-1
+                col-sm-12
+                col-xs-12
+                postlist-container
+            ">
+    			
+<div class="post-preview">
+    <a href="/2019/02/01/robots/">
+        <h2 class="post-title">
+            node爬虫实战
+        </h2>
+        
+        <h3 class="post-subtitle">
+            使用nodejs进行爬虫实战
+        </h3>
+        
+        <div class="post-content-preview">
+            本篇文章主要讲解一下使用nodejs来做爬虫。
+
+什么是爬虫？？
+爬虫是一种自动获取网页内容的程序.是搜索引擎的重要组成部分,因此搜索引擎优化很大程序上就是针对爬虫而做的优化。简单的来说爬虫就是拿到页面上的一段html代码。
+什么是robots协议
+robots其实就是一个.txt类型文本文件，它是一个协议，不是命令。robots主要是作为爬虫在爬取网站的时候首要看的一个文件。robots文...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on February 1, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/31/nginx/">
+        <h2 class="post-title">
+            Nginx反向代理和负载均衡总结
+        </h2>
+        
+        <h3 class="post-subtitle">
+            对Nginx反向代理和负载均衡配置的总结
+        </h3>
+        
+        <div class="post-content-preview">
+            nginx
+nginx是一款HTTP服务器和代理服务器。Nginx功能丰富，除了上面的功能之外还可以支持FastCGI、SSL、Virtual Host 、 URL Rewrite 、 Gzip等功能。并且支持很多第三方模块扩展。
+
+反向代理
+nginx是一款反向代理服务器，说道反向代理，不得不说正向代理。
+
+正向代理
+正向代理：局域网内通过代理服务器去访问局域网外的东西这就叫正向代理。
+如...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/28/http/">
+        <h2 class="post-title">
+            HTTP总结
+        </h2>
+        
+        <h3 class="post-subtitle">
+            对HTTP的总结
+        </h3>
+        
+        <div class="post-content-preview">
+            HTTP请求模型
+
+
+两个角色 两个动作
+
+  客户端：动作的发起者(通过HTTP协议去向服务端请求资源)
+  服务端：动作的响应者(通过HTTP协议去向客户端响应资源)
+
+
+区分客户端和服务端
+谁发请求谁是客户端，谁响应请求谁是服务端。
+
+有时候很多软件会把客户端和服务端做在一起：比如nodejs，nodejs向前端渲染页面的时候是作为服务端；向真正的后端(java)去请求数据的时候作为客...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 28, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/25/express-template/">
+        <h2 class="post-title">
+            express模板引擎的使用
+        </h2>
+        
+        <h3 class="post-subtitle">
+            experss模板引擎的使用
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是模板引擎
+模板引擎就是使我们能够在应用程序中使用静态模板文件。在运行时，模板引擎用实际值替换模板文件中的变量，并将模板转换为发送到客户端的HTML文件。通俗的讲就是使用一个模板可以在里面写变量，写循环，然后通过服务端编译程html文件。
+
+swig.js 模板引擎
+swig.js是一个html模板引擎，它支持.html后缀名。
+安装swig
+
+  npm install swig –s...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 25, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/25/express-err-log/">
+        <h2 class="post-title">
+            express错误处理及log4js日志
+        </h2>
+        
+        <h3 class="post-subtitle">
+            express错误处理中间件的使用及log4js打印日志
+        </h3>
+        
+        <div class="post-content-preview">
+            express的错误处理
+错误处理是express的全局一个中间件，错误处理中间件值定义在所有中间件的最下面的。它的工作流程是，只要有错误处理，有错误的中间件就会next到错误处理中间件，否则就不会执行到它。执行到错误处理中间件之后web实例又被重新唤醒继续执行node代码。
+
+错误处理中间件
+express错误处理中间件有着严格的方法签名：必须要有4个参数，即便是用不到也要写上。
+app....
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 25, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/25/express-middle/">
+        <h2 class="post-title">
+            express中间件
+        </h2>
+        
+        <h3 class="post-subtitle">
+            express中间件的使用及开发一个简单的中间件
+        </h3>
+        
+        <div class="post-content-preview">
+            所谓中间件
+从请求的一端到响应的一端中间所使用到的插件 叫做中间件。其中控制请求和响应循环流程的叫做next。next表示是否要进入下一个中间件处理。
+
+
+  注：在这里必须要明白的一点就是，express是基于中间件的，所有的句柄函数都是中间件。
+
+
+中间件的功能
+
+  执行任何代码
+  修改请求和响应对象
+  终结请求-响应循环。
+  调用堆栈的下一个中间件
+ 如果当前中间件没有终结请求...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 25, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/25/express-router/">
+        <h2 class="post-title">
+            express路由的使用
+        </h2>
+        
+        <h3 class="post-subtitle">
+            express路由的使用方法和解析
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是路由
+路由是指如何定义应用的端点以及如何响应客户端的请求
+
+我们所谓的Controller就是路由控制器
+
+路由的组成部分
+路由是由url、http请求(GET，post)和若干句柄组成。
+
+路由结构如下：app.METHOD(path,{callback..},callback)
+
+  app是express对象的一个实例
+  METHOD是一个HTTP请求方法
+  path是服务器...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 25, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/25/express1/">
+        <h2 class="post-title">
+            express使用指南
+        </h2>
+        
+        <h3 class="post-subtitle">
+            express入门使用指南
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是Exress
+Express是一个简洁而灵活的nodejs Web应用框架，提供了一系列强大特性帮助你创建各种Web应用。
+Express框架的特性
+
+  可以设置中间件来响应http请求
+  定义了路由表用于执行不同的http请求动作
+  可以通过向模板传递参数来动态渲染HTML页面
+
+
+什么是中间件
+上面Exress框架的特性第一条就提到了中间件，中间件是贯穿Expres全程的一个...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 25, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node7/">
+        <h2 class="post-title">
+            Node.js文件系统
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Node文件系统方法总结
+        </h3>
+        
+        <div class="post-content-preview">
+            文件模块
+引入文件模块
+
+  const fs = require(‘fs’);
+
+
+异步与同步文件操作的区别
+异步方法性能更高、速度更快、而且没有阻塞
+
+打开文件–异步
+fs.open(path,flags,mode,callback);
+
+
+  path：文件的路径
+  flags：文件打开的行为。
+  model：设置文件模式(权限),文件创建默认权限为0666(可读可写);
+    ...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node6/">
+        <h2 class="post-title">
+            Node.js全局方法和工具函数
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Node全局属性及常用方法util解析
+        </h3>
+        
+        <div class="post-content-preview">
+            全局对象global
+JavaScript中有一个特殊的对象，称为全局对象(Global Object) 它以及其所有属性都可以在程序的任何地方访问。即全局变量。在浏览器中全局对象是window，而在node中全局对象是global，所有的全局变量(global本身除外)都是global对象的属性。
+
+  永远使用声明变量以避免引入全局变量，因为全局变量会污染 命令空间，提高代码的耦合风险。...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+
+<!-- Pager -->
+
+<ul class="pager">
+    
+    <li class="previous">
+        <a href="/page5">&larr; 上一页</a>
+    </li>
+    
+    
+    <li class="next">
+        <a href="/page7">下一页 &rarr;</a>
+    </li>
+    
+</ul>
+
+
+    		</div>
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-3 col-lg-offset-0
+                col-md-3 col-md-offset-0
+                col-sm-12
+                col-xs-12
+                sidebar-container
+            ">
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">热门标签</a></h5>
+                    <div class="tags">
+                        
+                            
+                                <a href="/tags/#JavaScript" title="JavaScript" rel="7">
+                                    JavaScript
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#webpack" title="webpack" rel="2">
+                                    webpack
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#NodeJS" title="NodeJS" rel="10">
+                                    NodeJS
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Express" title="Express" rel="5">
+                                    Express
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#网络" title="网络" rel="4">
+                                    网络
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#前端工程化" title="前端工程化" rel="8">
+                                    前端工程化
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Linux" title="Linux" rel="4">
+                                    Linux
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#性能优化" title="性能优化" rel="3">
+                                    性能优化
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#React" title="React" rel="6">
+                                    React
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Vue" title="Vue" rel="12">
+                                    Vue
+                                </a>
+                            
+                        
+                            
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Short About -->
+                <section class="visible-md visible-lg">
+                    <hr><h5><a href="/about/">关于我</a></h5>
+                    <div class="short-about">
+                        
+                            <img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b510d7c0bd79?imageView2/1/w/180/h/180/q/85/format/webp/interlace/1" />
+                        
+                        
+                            <p>一位不知名的小前端</p>
+                        
+                        <!-- SNS Link -->
+                        <ul class="list-inline">
+                            
+                            <li>
+                                <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa  fa-stack-1x fa-inverse">C</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            <!--  -->
+                            
+                            <li>
+                                <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-stack-1x fa-inverse">掘</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            
+                            <li>
+                                <a target="_blank" href="https://github.com/hubvue">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </section>
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>友情链接</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="https://www.leer.live/">知足常乐的博客</a></li>
+                    
+                </ul>
+                
+    		</div>
+        
+	</div>
+</div>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

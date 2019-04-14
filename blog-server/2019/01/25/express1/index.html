@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>express使用指南 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/01/25/express1/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#Express" title="Express">Express</a>
+                        
+                    </div>
+                    <h1>express使用指南</h1>
+                    
+                    
+                    <h2 class="subheading">express入门使用指南</h2>
+                    
+                    <span class="meta">Posted by wang chong on January 25, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="什么是exress">什么是Exress</h3>
+<p>Express是一个简洁而灵活的nodejs Web应用框架，提供了一系列强大特性帮助你创建各种Web应用。</p>
+<h3 id="express框架的特性">Express框架的特性</h3>
+<ol>
+  <li>可以设置中间件来响应http请求</li>
+  <li>定义了路由表用于执行不同的http请求动作</li>
+  <li>可以通过向模板传递参数来动态渲染HTML页面</li>
+</ol>
+
+<h3 id="什么是中间件">什么是中间件</h3>
+<p>上面Exress框架的特性第一条就提到了中间件，中间件是贯穿Expres全程的一个东西，到底什么是中间件。</p>
+<blockquote>
+  <p>所谓中间件就是：从客户端请求的一端到服务器响应客户端的一端中间所使用到的插件就叫做中间件。</p>
+</blockquote>
+
+<h4 id="几个常用的中间件">几个常用的中间件</h4>
+<ol>
+  <li>body-parser  nodejs中间件，用于处理JSON、Raw、Text和URL编码的数据
+    <blockquote>
+      <p>npm install body-parse –save</p>
+    </blockquote>
+  </li>
+  <li>cookie-parser  这就是一个解析Cookie的工具，通过req.cookies可以取到传过来的cookie，并把他们转成对象
+    <blockquote>
+      <p>npm install cookie-parser –save</p>
+    </blockquote>
+  </li>
+  <li>multer   nodejs中间件，用于处理enctype=‘multipart/form-data’(设置表单的MIME编码)的表单数据
+    <blockquote>
+      <p>npm install multer –save</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="使用express">使用Express</h3>
+<h4 id="安装experss">安装experss</h4>
+<blockquote>
+  <p>npm install express –save</p>
+</blockquote>
+
+<p>注意：项目名不要和包名相同，否则无法安装依赖包</p>
+
+<h4 id="创建appjs">创建app.js</h4>
+<p>在项目根目录创建app.js ，app.js是express框架的启动文件。</p>
+<h4 id="在appjs中引入express模块">在app.js中引入express模块</h4>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express'</span><span class="p">);</span>
+</code></pre></div></div>
+<h4 id="通过express实例化express对象">通过express实例化express对象</h4>
+<pre><code class="language-JavaScript">const app = express();
+//相当于
+const app = new express();
+</code></pre>
+<h4 id="app对象的一些常用方法">app对象的一些常用方法</h4>
+<ol>
+  <li>app.use  通过app.use 引入中间件</li>
+  <li>app.route 注册路由</li>
+  <li>app.listen  创建web服务</li>
+  <li>app.METHOD(METHOD为http方法)拿到当前用户的路由,渲染结果。</li>
+  <li>app.set 设置所需要的模板</li>
+  <li>app.engine 设置模板用什么模板引擎编译</li>
+</ol>
+
+<h4 id="创建一个express-web服务">创建一个express Web服务</h4>
+<p>在app.js中书写一下代码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+<span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,(</span><span class="nx">req</span><span class="p">,</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="c1">//req 为客户端请求对象</span>
+    <span class="c1">//res 为服务端响应对象</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">'Hello World'</span><span class="p">)</span><span class="err">；</span>
+<span class="p">})</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="s1">'8080'</span><span class="p">,()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'server is running ...'</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="启动服务">启动服务</h4>
+<p>在项目根目录终端使用下面命令</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">node</span> <span class="nx">app</span><span class="p">.</span><span class="nx">js</span>
+</code></pre></div></div>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/1/25/16882db56055a16f?w=499&amp;h=162&amp;f=png&amp;s=10864" alt="" /></p>
+
+<p>至此一个web服务就启动了，但是问题来了，当我们修改代码的时候，页面并不会修改，只能手动停掉服务，然后再启动才会生效。所以要开启热启动</p>
+
+<h4 id="开启热启动">开启热启动</h4>
+<p>热启动的方法有两种：一种是supervisor,一种是nodemon</p>
+<h5 id="supervisor">supervisor</h5>
+<h6 id="安装">安装</h6>
+<blockquote>
+  <p>npm install supervisor -g</p>
+</blockquote>
+
+<h6 id="启动">启动</h6>
+<blockquote>
+  <p>supervisor app.js</p>
+</blockquote>
+
+<h5 id="nodemon">nodemon</h5>
+<h6 id="安装-1">安装</h6>
+<blockquote>
+  <p>npm install nodemon -g</p>
+</blockquote>
+
+<h6 id="启动-1">启动</h6>
+<blockquote>
+  <p>nodemon app.js</p>
+</blockquote>
+
+<h4 id="用户的请求与响应对象">用户的请求与响应对象</h4>
+<p>在开启服务的使用，每一个对应的请求里面都会有请求对象和响应对象。</p>
+
+<h5 id="request用户发出的请求">request：用户发出的请求</h5>
+<ol>
+  <li>req.query   拿到所有的用户请求参数(get请求)</li>
+  <li>req.body    当使用post请求的使用，使用中间件获得参数，参数会在req.body里面。</li>
+  <li>req.params  拿到对应的路由参数</li>
+  <li>req.app     当callback为外部文件时，用req.app访问express的实例</li>
+  <li>req.baseUrl   获取路由当前安装的URL路径</li>
+  <li>req.hostname  获取主机名</li>
+  <li>req.ip      获取IP地址</li>
+  <li>req.route   获取当前匹配的路由</li>
+  <li>req.path    获取请求路径</li>
+  <li>req.subdomains   获取子域名</li>
+  <li>req.get()  获取指定的HTTP请求头</li>
+  <li>req.is()   判断请求头Content-Type的MIME类型</li>
+  <li>req.protocol   获取协议类型</li>
+  <li>req.cookies   获得 Cookies</li>
+</ol>
+
+<h5 id="response服务端向用户输出的东西">response：服务端向用户输出的东西</h5>
+<ol>
+  <li>res.download()      提示下载文件</li>
+  <li>res.end()           终结响应处理流程</li>
+  <li>res.json()          发送一个JSON格式的响应</li>
+  <li>res.jsonp()         发送和一个支持JSONP格式的响应</li>
+  <li>res.redirect()      重定向请求</li>
+  <li>res.render()        渲染视图模板</li>
+  <li>res.send()          发送各种类型的数据</li>
+  <li>res.sendFile()      以八字节流的形式发送文件</li>
+  <li>res.sendStatus()    设置响应状态码，并将其以字符串的形式作为响应体一部分发出去</li>
+  <li>res.cookie(name，value [，option])  设置Cookie</li>
+  <li>res.set()          设置请求头</li>
+  <li>res.append()       追加指定HTTP头</li>
+  <li>res.clearCookie()  清除Cookie</li>
+  <li>res.type()         设置Content-Type的MIME类型</li>
+</ol>
+
+<h4 id="路由">路由</h4>
+<p>所谓路由就是通过访问不同的url路径的得到不同的信息。</p>
+<h5 id="早期的伪静态路由">早期的伪静态路由</h5>
+<p>在路由上写/index.html，并不会访问到这个页面，代码中还是动态路由</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s1">'/index.html'</span><span class="p">,(</span><span class="nx">req</span><span class="p">,</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">query</span><span class="p">);</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">'Hello '</span> <span class="o">+</span>  <span class="nx">req</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">username</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h5 id="路由参数">路由参数</h5>
+<p>在路由后加:id,这个id就是路由参数,通过req.params.id拿到这个参数</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s1">'/index/:id'</span><span class="p">,(</span><span class="nx">req</span><span class="p">,</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h5 id="restful路由">RESTful路由</h5>
+<p>RESTful 的核心思想就是，客户端发出的数据操作指令都是”动词 + 宾语”的结构。比如，GET /articles这个命令，GET是动词，/articles是宾语。<a href="http://www.ruanyifeng.com/blog/2018/10/restful-api-best-practices.html">阮一峰的RESTful实战</a></p>
+
+<h4 id="引入静态文件">引入静态文件</h4>
+<p>通过静态资源的方式引入一个静态资源文件夹public</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="kr">static</span><span class="p">(</span><span class="s1">'public'</span><span class="p">))</span>
+</code></pre></div></div>
+<p>访问静态文件 public目录就是根目录</p>
+<h5 id="例如">例如：</h5>
+<p>在public目录下创建index.css文件，启动服务访问http://127.0.0.1:8080/index.css 就可以访问到。</p>
+
+<h4 id="渲染html">渲染html</h4>
+<p>通过sendFile的方式渲染出html，在项目根目录下创建views文件夹用来存放渲染视图，在views中常见index.html。在app.js中书写一下代码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s1">'/index'</span><span class="p">,(</span><span class="nx">req</span><span class="p">,</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">sendFile</span><span class="p">(</span><span class="nx">__dirname</span> <span class="o">+</span> <span class="s1">'/views'</span><span class="o">+</span> <span class="nx">req</span><span class="p">.</span><span class="nx">url</span> <span class="o">+</span> <span class="s1">'.html'</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p>通过访问http://127.0.0.1:8080/index 就可以得到</p>
+
+<h4 id="通过body-parser取到post方式请求的数据">通过body-parser取到post方式请求的数据</h4>
+
+<h5 id="安装body-parser包">安装body-parser包</h5>
+<blockquote>
+  <p>npm install body-parser –save</p>
+</blockquote>
+
+<h5 id="引入body-parser包">引入body-parser包</h5>
+<blockquote>
+  <p>const bodyParser = require(‘body-parser’);</p>
+</blockquote>
+
+<h5 id="使用中间件">使用中间件</h5>
+<blockquote>
+  <p>app.use(bodyParser.urlencoded({extended:false}))</p>
+</blockquote>
+
+<h5 id="取到参数">取到参数</h5>
+<blockquote>
+  <p>请求中使用req.body取得请求参数列表</p>
+</blockquote>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/01/23/node7/" data-toggle="tooltip" data-placement="top" title="Node.js文件系统">前一篇<br>
+                        <span>Node.js文件系统</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/01/25/express-router/" data-toggle="tooltip" data-placement="top" title="express路由的使用">后一篇<br>
+                        <span>express路由的使用</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

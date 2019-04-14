@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/page7/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Page Header -->
+<header class="intro-header" style="background-image: url('img/bg/bg_index.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
+                <div class="site-heading">
+                    <h1>Tomorrow</h1>
+                    <!--<hr class="small">-->
+                    <span class="subheading">我学了多少技术   读了多少本书  </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row">
+        
+
+<!-- USE SIDEBAR -->
+    <!-- PostList Container -->
+    		<div class="
+                col-lg-8 col-lg-offset-1
+                col-md-8 col-md-offset-1
+                col-sm-12
+                col-xs-12
+                postlist-container
+            ">
+    			
+<div class="post-preview">
+    <a href="/2019/01/23/node6/">
+        <h2 class="post-title">
+            Node.js全局方法和工具函数
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Node全局属性及常用方法util解析
+        </h3>
+        
+        <div class="post-content-preview">
+            全局对象global
+JavaScript中有一个特殊的对象，称为全局对象(Global Object) 它以及其所有属性都可以在程序的任何地方访问。即全局变量。在浏览器中全局对象是window，而在node中全局对象是global，所有的全局变量(global本身除外)都是global对象的属性。
+
+  永远使用声明变量以避免引入全局变量，因为全局变量会污染 命令空间，提高代码的耦合风险。...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node5/">
+        <h2 class="post-title">
+            NodeJS路由及请求参数解析
+        </h2>
+        
+        <h3 class="post-subtitle">
+            node路由的使用和GET及POST方法的请求参数解析
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是路由
+
+简单的说，把一个总路线分成多个方向，通过调用不同方向的标签，执行不同的程序。
+
+  路由表示 controller/action
+
+
+一个浏览器网址的ur可能是这样的
+
+  www.ctomorrow.top/about/phone
+
+
+这其中的/about/phone就构成了一个路由，about是相应的控制器，action是对应的控制ID。
+
+路由
+
+
+
+当我们在浏览器地址栏...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node4/">
+        <h2 class="post-title">
+            Node.js模块化
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Nodejs模块化及使用
+        </h3>
+        
+        <div class="post-content-preview">
+            模块化的概念与意义
+
+  为了让Nodejs的文件可以相互调用，Nodejs提供了一个简单的模块系统
+  模块是Nodejs应用程序的基本组成部分
+  文件和模块是一一对应的。一个Nodejs文件就是一个模块
+  这个文件可能是JavaScript代码、JSON或者编译过的C/C++扩展
+  Nodejs中存在4类模块(原生模块和3种文件模块：3种文件模块是第三方提供的，原生模块是node原...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node3/">
+        <h2 class="post-title">
+            Node.js回调机制及事件驱动模型
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Node.js回调机制及事件驱动模型
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是回调
+函数的调用分为三种：同步调用、回调和异步调用。
+
+回调是一种双向调用
+
+  被调用的一个函数在被调用的使用会反过来调用它的主调函数，这种情况叫做双向调用
+
+
+JavaScript通过回调函数来实现回调。
+
+阻塞与非阻塞
+在NodeJS入门就说到Node是非阻塞是IO，什么是阻塞什么是非阻塞呢？
+
+  阻塞和非阻塞关注的是程序在等待调用结果(消息，返回值)时的状态
+  阻塞就是做不...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node2/">
+        <h2 class="post-title">
+            Node环境及npm命令的深入
+        </h2>
+        
+        <h3 class="post-subtitle">
+            nodeREPL环境及npm命令深入
+        </h3>
+        
+        <div class="post-content-preview">
+            NodeJS的REPL环境
+什么是REPL
+REPL是一种交互解释器，在终端中，直接敲node然后回车，就进入到了nodeREPL环境
+REPL能干什么？
+node的REPL环境可以做一些简单的运算，和做一些简单的代码验证。在这个环境下可以正常的书写代码，相当于浏览器控制台的console。
+
+Node REPL中的命令
+
+
+  
+    
+      命令
+      功能
+    
+  ...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/node1/">
+        <h2 class="post-title">
+            NodeJS入门
+        </h2>
+        
+        <h3 class="post-subtitle">
+            NodeJS入门及搭建一个简单的Web服务
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是NodeJS
+NodeJS本质上是一个JavaScript的解释器，是JavaScript的运行环境。它是一个后端服务器程序，并且允许使用JavaScript语言定义数据结构，可以操作磁盘文件和搭建http服务。
+
+
+  注意：NodeJS并不是一个Web服务器，它是可以搭建Web服务器的，可以说Web服务器是Nodejs的一个产物。
+
+
+为什么要用NodeJS
+NodeJS有以下特性...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/23/webpack-config/">
+        <h2 class="post-title">
+            记一次webpack配置文件的分离
+        </h2>
+        
+        <h3 class="post-subtitle">
+            记一次webpack配置文件的分离思考
+        </h3>
+        
+        <div class="post-content-preview">
+            随着前端技术的发展，业务逻辑的增多及功能化的繁琐已经成为前端人员最烧脑的问题。前端自动化构建工具的出现，为前端人员带来了项目构建上的福音，成为每个前端工程师必回的技术栈，目前比较流行的Webpack以万物皆模块的思想构建我们的前端项目，同样也是笔者正在使用的一个前端自动化构建工具。
+
+Webpack对于每个前端人员来说都不会怎么陌生，它将每一个静态文件当做一个模块，经过一系列的处理为我们整合...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/22/PromiseA+/">
+        <h2 class="post-title">
+            手写一个PromiseA+
+        </h2>
+        
+        <h3 class="post-subtitle">
+            根据PromiseA+规范手写Promise
+        </h3>
+        
+        <div class="post-content-preview">
+            Promise是ES6出现的一个异步编程的一个解决方案，改善了以往回调函数的回调地狱(虽然写起来也挺像的)。不会Promise的可以移步阮一峰的Promise，这里讲的非常清晰。
+
+就现在的发展情况而言，Promise这种解决方案频繁的在我们的代码中出现，当然也成为面试必问的一项，可想而知，理解Promise的实现是非常重要的一点。
+
+本文主要是通过PromiseA+这个规范来一步一步的实现...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 22, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/01/18/javascript-test/">
+        <h2 class="post-title">
+            JavaScript集成化测试
+        </h2>
+        
+        <h3 class="post-subtitle">
+            JavaScript单元测试、e2e测试、UI测试、接口测试
+        </h3>
+        
+        <div class="post-content-preview">
+            来一打JavaScript集成化测试(实战篇)
+JavaScript与QA工程师(理论篇)
+
+
+开搞
+单元测试
+单元测试的测试框架有很多中，今天用的是karma，还有一个是React推出的jest
+初始化npm
+
+  npm  init -y
+  下载karma包
+  npm install karam –save-dev
+  安装karma-jasmine和jasmine-core断言库
+...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on January 18, 2019
+    </p>
+</div>
+<hr>
+
+
+<!-- Pager -->
+
+<ul class="pager">
+    
+    <li class="previous">
+        <a href="/page6">&larr; 上一页</a>
+    </li>
+    
+    
+</ul>
+
+
+    		</div>
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-3 col-lg-offset-0
+                col-md-3 col-md-offset-0
+                col-sm-12
+                col-xs-12
+                sidebar-container
+            ">
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">热门标签</a></h5>
+                    <div class="tags">
+                        
+                            
+                                <a href="/tags/#JavaScript" title="JavaScript" rel="7">
+                                    JavaScript
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#webpack" title="webpack" rel="2">
+                                    webpack
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#NodeJS" title="NodeJS" rel="10">
+                                    NodeJS
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Express" title="Express" rel="5">
+                                    Express
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#网络" title="网络" rel="4">
+                                    网络
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#前端工程化" title="前端工程化" rel="8">
+                                    前端工程化
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Linux" title="Linux" rel="4">
+                                    Linux
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#性能优化" title="性能优化" rel="3">
+                                    性能优化
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#React" title="React" rel="7">
+                                    React
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Vue" title="Vue" rel="12">
+                                    Vue
+                                </a>
+                            
+                        
+                            
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Short About -->
+                <section class="visible-md visible-lg">
+                    <hr><h5><a href="/about/">关于我</a></h5>
+                    <div class="short-about">
+                        
+                            <img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b510d7c0bd79?imageView2/1/w/180/h/180/q/85/format/webp/interlace/1" />
+                        
+                        
+                            <p>一位不知名的小前端</p>
+                        
+                        <!-- SNS Link -->
+                        <ul class="list-inline">
+                            
+                            <li>
+                                <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa  fa-stack-1x fa-inverse">C</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            <!--  -->
+                            
+                            <li>
+                                <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-stack-1x fa-inverse">掘</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            
+                            <li>
+                                <a target="_blank" href="https://github.com/hubvue">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </section>
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>友情链接</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="https://www.leer.live/">知足常乐的博客</a></li>
+                    
+                </ul>
+                
+    		</div>
+        
+	</div>
+</div>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

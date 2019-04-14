@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>前端工程化Linux预备知识 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/26/linux-start/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#前端工程化" title="前端工程化">前端工程化</a>
+                        
+                        <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                    </div>
+                    <h1>前端工程化Linux预备知识</h1>
+                    
+                    
+                    <h2 class="subheading">工程化Linux知识学习</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 26, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h2 id="操作系统概述">操作系统概述</h2>
+<h3 id="古老的操作系统">古老的操作系统</h3>
+<p>古老的Dos系统，它是windows系统的前身，最早的windows是构建在Dos系统下面的，作为Dos系统的一种增强型界面。后来windows95出现之后，windows就独立了，它不依赖Dos了，反而Dos就成为了一个子系统嵌入到windows中，一直到今天(现在的终端不是Dos了，但是一直使用着Dos的命令)。</p>
+<h3 id="windows">windows</h3>
+<p>windows作为中国普遍的操作系统是适用于工作和娱乐的。但是在开发环境下相对于Mac和Linux就有些欠缺，windows的终端也没有Mac和Linux强大。</p>
+<h3 id="linux">Linux</h3>
+<p>Linux系统是一个开源的操作系统，适合程序员做开发。Linux的桌面不是很成熟，但是服务器系统是非常强大的。</p>
+<h3 id="macos">MacOS</h3>
+<p>MacOS应该是程序员中最普遍使用的操作系统了，有着成熟的桌面同时终端也非常强大，适合程序员做开发。</p>
+
+<h2 id="远程登录linux系统">远程登录Linux系统</h2>
+<p>一般的Linux系统都是用来做服务器来使用的，所以我们必须要操作它，服务器之所以叫做服务器是因为上面跑着很多服务，服务永不停止，这样才能在有需要的时候提供一些功能。如果不能远程登录到服务器上去，那么程序就没法部署上去。因为现在的服务器大多数都在机房或者都是云服务器，所以需要远程连接登录上去。</p>
+<h3 id="远程登录协议">远程登录协议</h3>
+<p>远程登录Linux系统使用的是ssh协议，同时ssh也是一个软件，支持ssh网络协议的服务名是sshd</p>
+<h3 id="不同操作系统下远程登录的方式">不同操作系统下远程登录的方式</h3>
+<h4 id="windows-1">windows</h4>
+<p>由于windows并没有像Linux和MacOS那样强大的终端，windows自己的终端里面并没有ssh，所以只能借助外物来实现登录。</p>
+<ol>
+  <li>putty：是一个带有图形用户界面的远程登录终端。—开源，比较简单。</li>
+  <li>Xshell：也是带有图形用户界面的远程登录终端。—商业软件(收费)，功能强大。</li>
+  <li>Cmder：windows系统下的一个增强型的终端。可以使用大部分Linux命令，也可以使用ssh登录远程服务器(<strong>建议使用这种</strong>)。</li>
+</ol>
+
+<h4 id="linux和macos">Linux和MacOS</h4>
+<p>Linux和MacOS的终端里面登录都自带了ssh命令，可以通过ssh命令来登录远程服务器。
+<strong>使用</strong></p>
+<blockquote>
+  <p>ssh 用户名@ip地址</p>
+</blockquote>
+
+<p>例如来登录一下我的服务器。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b3145786251a?w=761&amp;h=157&amp;f=png&amp;s=65767" alt="" />
+这样就登录成功了，除此之外我们发现登录成功之后后面有一个~符号
+<img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b326da69707b?w=755&amp;h=121&amp;f=png&amp;s=51234" alt="" />
+这里服务器的home目录，每一个Linux系统上的用户都有一个自己的目录，也就是home目录。不同的用户下的home是不同的。</p>
+<ul>
+  <li>root用户下的home目录比较特殊 /root</li>
+  <li>普通用户的home目录的路径在/home/用户名</li>
+</ul>
+
+<h5 id="用户身份切换">用户身份切换</h5>
+<p>Linux下的用户身份切换命令有两个：</p>
+<ol>
+  <li>sudo：一般用于敲命令，表示暂时以root身份运行一个需要权限的命令。</li>
+  <li>su：用于切换用户身份，su 普通用户(不需要敲密码)，以普通身份切换到root身份需要密码。</li>
+</ol>
+
+<blockquote>
+  <p>切换身份是一种递归型的切换，向外切换过去，可以通过exit命令返回。</p>
+</blockquote>
+
+<h2 id="强调重要的linux命令">强调重要的Linux命令</h2>
+<h3 id="行编辑器vivim">行编辑器vi/vim</h3>
+<p>由于我们是远程登录到Linux服务器，又因为远程服务器并没有图形化界面，所以在编辑器方面vim是一个神奇。vim是vi的增强版。
+<img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b3b05c47a22c?w=928&amp;h=974&amp;f=png&amp;s=135406" alt="" /></p>
+
+<h3 id="服务器管理命令">服务器管理命令</h3>
+<p>Linux操作系统的服务器管理命令是systemctl。用于管理服务的状态。</p>
+<blockquote>
+  <p>用法：systemctl  [status,start,stop,restart]  服务名</p>
+</blockquote>
+
+<p>上面命令其中systemctl为主命令，[status,start,stop,restart]为子命令。</p>
+<ol>
+  <li>systemctl status  服务名    ：查看一个服务的运行状态</li>
+  <li>systemctl start 服务名      ：启动一个服务。</li>
+  <li>ystemctl   stop 服务名         ：停止一个服务。</li>
+</ol>
+
+<h3 id="网络管理命令">网络管理命令</h3>
+<h4 id="ifconfig">ifconfig</h4>
+<p>用于查看当前计算机的硬件信息和网络。在windows下是ipconfig，在linux和mac下是ifconfig（ifconfig：interface config）
+<img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b40563f8893b?w=761&amp;h=251&amp;f=png&amp;s=47968" alt="" />
+etho表示物理网卡。</p>
+<blockquote>
+  <p>物理网卡：默认名称是：eth+数字</p>
+</blockquote>
+
+<h4 id="ip">ip</h4>
+<p>ip命令是一个新命令，centOS6之前是没有的。ip命令是一个网络配置的工具箱，分为主命令和子命令。例如：</p>
+<blockquote>
+  <p>ip addr :显示网络</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b42023df93ad?w=746&amp;h=137&amp;f=png&amp;s=32850" alt="" /></p>
+
+<h4 id="route">route</h4>
+<p>route命令用于帮助诊断网络。当局域网访问不了互联网的时候，我们首先使用ping命令执行下，如果没有得到返回，那么可能就是网络出了问题，那么就可以使用route命令查看一下路由配置对不对。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b43cd5da477b?w=757&amp;h=103&amp;f=png&amp;s=18067" alt="" /></p>
+<ol>
+  <li>Destination：路由名称。</li>
+  <li>Gateway：表示网关。</li>
+  <li>Genmask：表示通过网关可以达到什么样的网段。</li>
+  <li>Ifce：Interface，表示网络走的是什么网卡。</li>
+</ol>
+
+<h4 id="下载命令">下载命令</h4>
+<p>在终端中的下载命令有两个。</p>
+<ol>
+  <li>
+    <p>wget</p>
+
+    <blockquote>
+      <p>wget url  下载</p>
+    </blockquote>
+
+    <blockquote>
+      <p>wget -c url  ：断点续传，下载失败了，执行这个会在断开的地方下载。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>curl</p>
+
+    <blockquote>
+      <p>curl url 下载</p>
+    </blockquote>
+
+    <p>curl功能更加强大，可以控制http头</p>
+  </li>
+</ol>
+
+<h4 id="linux帮助">Linux帮助</h4>
+<ol>
+  <li>命令  -h：显示帮助。</li>
+  <li>man 命令：显示命令的帮助文档。这个man命令实际上是一个小数据库，存放着各种命令的帮助文档。</li>
+</ol>
+
+<h4 id="常用的终端快捷键">常用的终端快捷键</h4>
+
+<ol>
+  <li>ctrl + s：暂停屏幕输出：不要轻易的挂起终端，可能会导致一个服务启动失败。</li>
+  <li>ctrl + c：结束正在运行的程序(ping,telnet等)</li>
+  <li>ctrl + d：结束输入或退出shell</li>
+  <li>ctrl + q：恢复屏幕输出。</li>
+  <li>ctrl + l：清屏，等同于Clear。</li>
+  <li>ctrl + a/ctrl + e 快速移动光标到行首/行尾。</li>
+</ol>
+
+<h2 id="linux进程线程与协程">Linux进程、线程与协程</h2>
+<h3 id="进程">进程</h3>
+<p>进程是一个动态的概念。进程就是运行的实例。进程的目的就是担当分配系统资源的(CPU时间，内存)的实体。</p>
+
+<p>我们知道操作系统最核心的概念就是进程。其实进程简单来说就是在操作系统中运行的程序，它是操作系统资源管理的最小单位。但是进程是一个动态的实体，它是程序的一次执行过程。进程和程序的区别在于：进程是动态的，程序是静态的，进程是运行中的程序，而程序是一些保存在硬盘上的可执行代码。</p>
+
+<h4 id="进程分配cpu的方式">进程分配CPU的方式</h4>
+<h5 id="单核操作系统分配cpu的方式">单核操作系统分配CPU的方式</h5>
+<p>单核操作系统分配CPU的方式是‘切时间片’方式：给进程1一段时间，然后把CPU控制权拿回来，再给进程2用，进程2用一小段时间再给进程3用。这种也可以称之为时分复用。</p>
+
+<h5 id="多核操作系统分配cpu的方式">多核操作系统分配CPU的方式</h5>
+<p>当进程1启动的时候把进程1分配到核心1上，当进程2启动的时候把进程2分配到核心2上。当进程多的时候，也同样把把每个核心使用切时间片的方式。</p>
+<ol>
+  <li>单核CPU：同一时间只能执行一个进程。</li>
+  <li>多核CPU：每个核心同一时间只能执行一个进程。</li>
+</ol>
+
+<h3 id="线程">线程</h3>
+<p>线程是操作系统能够进行运算调度的最小单位。它被包含在进程里面，是跑在进程里面的更小的任务。</p>
+
+<h3 id="协程">协程</h3>
+<p>协程是一种程序运行的方式，是一种用户态的轻量级线程。无法利用多核资源。不用调用内核资源，生成一个协程不需要内核的参与。</p>
+<h4 id="何为轻量级线程">何为轻量级线程</h4>
+<p>多个线程（单线程情况下，即多个函数）可以并行执行，但是只有一个线程（或函数）处于正在运行的状态，其他线程（或函数）都处于暂停态（suspended），线程（或函数）之间可以交换执行权。也就是说，一个线程（或函数）执行到一半，可以暂停执行，将执行权交给另一个线程（或函数），等到稍后收回执行权的时候，再恢复执行。这种可以并行执行、交换执行权的线程（或函数），就称为协程。</p>
+<h4 id="何为用户态">何为用户态</h4>
+<p>在操作系统中是分层的：最内存是硬件，然后硬件给操作系统提供支持。操作系统提供内部核心功能(内核态)，再外层就是一个库，再外层就是shell(它就是一个壳)(用户态是自己实现的一些功能)，用户态在使用的时候也是需要操作系统的内核态的功能(通过API或者是操作系统的信号系统进行提供)。简单的说用户态就是自己实现的代码。</p>
+
+<h3 id="io密集型应用的发展">IO密集型应用的发展</h3>
+<p>IO密集型一般是网络相关的应用，IO(输入输出)主要做的是计算机内部和计算机外部进行数据交换。之所以说IO操作是最慢的操作，是因为IO操作时要跨越硬件进行数据交换。I：输入时把数据传给CPU、O：输出时CPU处理完了再把数据吐出来。</p>
+
+<p>网卡对于CPU来说是另外一个设备。在CPU内部的数据处理是很快的，但是CPU要和其他的物理元件进行通信要走数据总线，然而数据总线的带宽是受到限制的，所以在IO操作上面效率是很低的。</p>
+
+<h4 id="发展历程">发展历程</h4>
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690bab535b88209?w=577&amp;h=122&amp;f=png&amp;s=15340" alt="" /></p>
+<ul>
+  <li>多进程：最初为了提高IO的吞吐量，走的是多进程，多进程消耗的系统资源比较多。使用多进程解决方案的时候要启动多个进程。比如说：nginx是一种典型的多进程的解决方案，现在也用到了事件驱动。再往前就是Apache，Apache也是多进程的，当有一个网络请求过来的时候Apache会创建出一个子进程来，有两个网络请求过来会创建两个子进程，因为进程消耗的系统资源非常多，所以性能是直线下降的。</li>
+  <li>多线程：线程运行在进程内部，就可以只启动一个进程，当有网络请求过来的时候创建一个线程，有多个创建多个线程。为多进程节省资源。但是请求数多了也不行。</li>
+  <li>事件驱动：事件驱动就是一个单线程处理方案(node),当没有请求的时候就待着，有请求的时候：一个事件过来，通过事件处理流程去完成操作。简单的说就是在一条线上工作，没有消耗更多的资源。</li>
+  <li>协程：协程是一种用户态更加轻量的线程。协程所消耗的系统资源更少。</li>
+</ul>
+
+<h3 id="cpu密集型应用的发展">CPU密集型应用的发展</h3>
+<p>CPU密集型纯碎就是消耗CPU的时间，决定CPU密集型的性能就取决于CPU跑的是快还是慢。科学数据运算就是CPU密集型。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690bae796d1f6ff?w=292&amp;h=89&amp;f=png&amp;s=7812" alt="" /></p>
+
+<h3 id="调度和切换的时间进程线程协程">调度和切换的时间：进程&gt;线程&gt;协程</h3>
+<p>操作系统要管理进程和线程，所以操作系统本身也要消耗一些资源，如果说操作系统在管理进程和线程，进程和线程进行调度和切换频率非常高的时候，要么很多的CPU资源都会消耗到切换上面。也就是说CPU资源都被操作系统占用了，所以说并不是进程越多越好或者线程越多越好，是有一个最佳的平衡点的。</p>
+
+<h3 id="进程与线程">进程与线程</h3>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e1a7eb6b1002?w=339&amp;h=230&amp;f=png&amp;s=18198" alt="" />
+操作系统在设计上，可以归纳为三点：</p>
+<ol>
+  <li>以多进程为例，允许多个任务同时进行；每一个进程都有自己的内存空间，都有自己的数据结构。进程中分为父进程和子进程，以nginx为例：当启动nginx服务的时候，实际上启动的是主进程，当有连接请求的时候，nginx会创建出一条子进程来(子进程就是工作进程)，主进程负责调度(产生工作进程)，工作进程完成任务之后，主进程负责回收。</li>
+  <li>以多线程为例，允许单个任务分为不同的部分运行；线程可以共享进程的数据，线程本身也有自己的数据。</li>
+  <li>
+    <p>提供协调机制：一方面防止进程之间和线程之间产生冲突，另一方面允许进程之间和线程之间共享资源。</p>
+
+    <ul>
+      <li>资源争抢的后果：谁都想拿资源，但是谁也拿不走或者说会把资源给破坏掉。有些资源是独占资源，协调机制就是协调独占资源。</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="进程与线程的资源共享">进程与线程的资源共享</h4>
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e1b0e37ab0ab?w=472&amp;h=290&amp;f=png&amp;s=107434" alt="" />
+由上图可以得知：每个进程都有自己的独有的东西，线程会继承自所在进程全部的东西，并且多线程之间每个线程也有自己独有的东西。</p>
+<h5 id="单线程进程">单线程进程</h5>
+<p>单线程进程是指一个进程中只有一个线程，该线程继承进程的所有资源(代码、数据、文件操作符)，并且有自己的资源(寄存器、栈)。</p>
+<h5 id="多线程进程">多线程进程</h5>
+<p>多线程进程是指在一个进程中有多个线程，这个线程都可以拿到进程的所有资源，也就是说共享进程资源(代码、数据、文件操作符)，而且每个线程中又有自己独立的资源(寄存器、栈)。</p>
+<h3 id="linux进程管理相关命令">Linux进程管理相关命令</h3>
+<h4 id="top命令">top命令</h4>
+<p>top命令相当于windows的任务管理器，显示所有进程的状态。属于动态</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e5558e39a1cb?w=761&amp;h=257&amp;f=png&amp;s=129281" alt="" /></p>
+<h4 id="ps命令">ps命令</h4>
+<p>查看当前操作系统某一瞬间净化才能的状态。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e5657c8fdda1?w=327&amp;h=68&amp;f=png&amp;s=8981" alt="" /></p>
+<h5 id="px-aux">px aux</h5>
+<p>查看当前操作系统某一个瞬间所有进程的状态。
+<img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e56f9c3e1197?w=752&amp;h=217&amp;f=png&amp;s=44683" alt="" /></p>
+<ol>
+  <li>user：表示这个进程是以哪一个用户启动的。</li>
+  <li>command：进程的权限，是在用户身上继承下来的，如果以root身份启动，那么这个进程会获得root用户的所有权限。</li>
+  <li>pid：进程编号</li>
+  <li>stat : 当前一瞬间，进程的状态。(S：休眠状态，Z：僵尸状态(父进程已经死掉了，子进程没有被操作系统及时的回收))</li>
+</ol>
+
+<blockquote>
+  <p>特殊的进程：1号进程是用来管理其他进程的，这个进程是杀不了的，1号进程是所有其他进程的父进程，如果父进程死了，子进程一块死掉。</p>
+</blockquote>
+
+<h5 id="查找特定的进程">查找特定的进程</h5>
+<blockquote>
+  <table>
+    <tbody>
+      <tr>
+        <td>ps aux</td>
+        <td>grep 服务名</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<p>管道命令 ‘|’ 符号： 把前面命令产生的结果，传给后面的命令。</p>
+<ol>
+  <li>ps aux ：查看当前操作系统某一个瞬间所有进程的状态。</li>
+  <li>grep 服务名：筛选，在上面命令的结果中筛选出指定服务名的进程。</li>
+</ol>
+
+<p>例如查看sshd服务
+<img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e59c0994e59f?w=746&amp;h=65&amp;f=png&amp;s=15571" alt="" />
+显示了三个服务，但是只有上面两个是sshd的服务，第一个是父进程，第二个是子进程，第三个是grep查找的服务。</p>
+
+<p><strong>区分父进程和子进程</strong></p>
+
+<p>看pid，谁的pid小，谁就有可能是父进程。</p>
+
+<h4 id="杀死进程">杀死进程</h4>
+<h5 id="kill命令">kill命令</h5>
+<blockquote>
+  <p>kill 进程的pid</p>
+</blockquote>
+
+<blockquote>
+  <p>kill -9 进程的pid ：强制杀死进程</p>
+</blockquote>
+
+<p>原理： kill功能是向操作系统发一个信号过去，linux操作系统有32种信号(各有各的用途)，-9 就表示9号信号，9号信号的意思就是强制关闭一个进程。不加 -9就是让进程自行退出的信号。</p>
+
+<h5 id="pkill命令">pkill命令</h5>
+<p>pkill命令和kill类似，主要是pkill后面跟的是进程的名称，kill后面跟的是进程的pid。</p>
+<blockquote>
+  <p>kill 进程的名称</p>
+</blockquote>
+
+<h4 id="w命令">w命令</h4>
+<p>显示当前谁登陆了远程服务器上。
+<img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e5dbac283eb2?w=693&amp;h=66&amp;f=png&amp;s=13113" alt="" /></p>
+
+<h2 id="linux网络">Linux网络</h2>
+<h3 id="重启网卡">重启网卡</h3>
+<p>如果有时候我们要重启网卡，一定要在图形化界面上重启，如果在终端中远程登录，就是直接掉线。</p>
+<ol>
+  <li>关闭网卡：ifdown 网卡名称</li>
+  <li>启动网卡：ifup 网卡名称</li>
+  <li>网卡的配置文件：/etc/sysconfig/network-scripts/ifcfg- [name]</li>
+</ol>
+
+<h3 id="排查网络故障">排查网络故障</h3>
+<p>traceroute命令是更高级的ping命令。用于显示当我们想和一个网址通信的时候，中间的挑转路由器是什么。
+<strong>ping命令</strong>
+<img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e6195bb62da2?w=583&amp;h=187&amp;f=png&amp;s=43513" alt="" />
+<strong>traceroute命令</strong>
+<img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e622f740d3bd?w=744&amp;h=195&amp;f=png&amp;s=50016" alt="" /></p>
+
+<h3 id="查询linux网络端口">查询Linux网络端口</h3>
+<h3 id="ss命令">ss命令</h3>
+<blockquote>
+  <p>ss -an  输出进程的信息就会包括端口号</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e63b04a94faa?w=719&amp;h=253&amp;f=png&amp;s=36732" alt="" /></p>
+<blockquote>
+  <p>ss-anp 显示使用网络的进程</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e649f422fe69?w=1259&amp;h=220&amp;f=png&amp;s=91464" alt="" /></p>
+
+<p>使用管道机制查询单个网络端口</p>
+<blockquote>
+  <table>
+    <tbody>
+      <tr>
+        <td>ss -anp</td>
+        <td>grep :22</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e65b070ce071?w=645&amp;h=145&amp;f=png&amp;s=23481" alt="" /></p>
+
+<h3 id="netstat命令">netstat命令</h3>
+<p>netstat命令和ss命令用法相同。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/21/1690e66b431cc85d?w=647&amp;h=89&amp;f=png&amp;s=16453" alt="" /></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/26/linux-mianmi/" data-toggle="tooltip" data-placement="top" title="Linux的免密登录配置">前一篇<br>
+                        <span>Linux的免密登录配置</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/26/bower/" data-toggle="tooltip" data-placement="top" title="学习Bower">后一篇<br>
+                        <span>学习Bower</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

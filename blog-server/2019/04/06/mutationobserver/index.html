@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>学习MutationObserver - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/04/06/mutationobserver/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('https://user-gold-cdn.xitu.io/2019/4/5/169ede6b800e4475?imageView2/1/w/1304/h/734/q/85/format/webp/interlace/1')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#JavaScript" title="JavaScript">JavaScript</a>
+                        
+                    </div>
+                    <h1>学习MutationObserver</h1>
+                    
+                    
+                    <h2 class="subheading">原生API-MutationObserver观察者</h2>
+                    
+                    <span class="meta">Posted by wangchong on April 6, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="mutationobserver">MutationObserver</h3>
+<p>Mutation Observer API 用来监视DOM变动。DOM的任何变动，比如节点的增删、属性的变动、文本内容的变化，这个API都可以得到通知。</p>
+
+<p>首先这个API归属于微任务，也就是说是异步的，这样设计也是为了应付Dom变动频繁的特点，防止频繁变动占用js执行栈造成页面卡顿。比如说：如果不是异步当DOM变动触发观察者的回调函数执行，就会堵塞后续代码的执行；是异步的话，在响应时间内比如说插入1000个p元素，那么MutationObserver会把这些响应合并成一次。</p>
+
+<h4 id="mutationobserver有以下特点">MutationObserver有以下特点：</h4>
+<ol>
+  <li>异步执行</li>
+  <li>把异步时间内的DOM变动记录封装成一个数组处理，可以以数组的长度判断页面加载何时Dom跳跃大。</li>
+  <li>它既可以观察DOM的所有类型变动，也可以指定只观察某一类类型的变动。</li>
+</ol>
+
+<h4 id="mutationobserver构造函数">MutationObserver构造函数</h4>
+<p>早期的Firefox和Chrome版本中需要带有前缀。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">MutationObserver</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">MutationObserver</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">WebkitMutationObserver</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">MozMutationObserver</span><span class="p">;</span>
+</code></pre></div></div>
+<p>首先使用MutationObserver构造函数实例化一个MutationObserver对象，同时指定这个实例的回调函数。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">observer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MutationObserver</span><span class="p">(()</span><span class="o">=&gt;</span><span class="p">{})</span>
+</code></pre></div></div>
+<p>构造函数可以接受连个参数：</p>
+<ul>
+  <li>第一个参数为变动记录数据。</li>
+  <li>第二个参数为观察者实例。</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">observer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MutationObserver</span><span class="p">((</span><span class="nx">mutations</span><span class="p">,</span><span class="nx">observer</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">muatation</span><span class="p">,</span><span class="nx">observer</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="mutationobserver实例">MutationObserver实例</h4>
+<p>构造函数调用MutationObserver得到MutationObserver实例。实例有以下方法。</p>
+<h5 id="observe">observe</h5>
+<p>observe方法用来监听Dom变化，接受两个参数：</p>
+<ul>
+  <li>第一个参数是所要观察的Dom节点</li>
+  <li>第二个对象是一个配置对象，指定所要观察的变动类型</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">observer</span><span class="p">.</span><span class="nx">observe</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">,{</span>
+    
+<span class="p">})</span>
+</code></pre></div></div>
+<p>Dom的变动类型一共有三种：</p>
+<ul>
+  <li>childList : 子节点变动(指新增、删除、修改)。</li>
+  <li>attributes ：属性的变动</li>
+  <li>characterData ： 节点内容或节点文本的变动。</li>
+</ul>
+
+<p>当变动类型为true的时候为监听状态，默认为不监听。</p>
+
+<blockquote>
+  <p>需要注意的是：必须同时指定三种变动类型中的一种或者多种，否则会报错。</p>
+</blockquote>
+
+<p>除了三种变动类型外，对象属性还可以设置其他值：</p>
+<ul>
+  <li>subtree ： 布尔值，表示是否将观察者应用于该节点的后代所有节点。</li>
+  <li>attributeOldValue：布尔值，表示观察attributes变动时，是否需要记录变动前的属性值。</li>
+  <li>characterDataOldValue：布尔值，表示观察characterData变动时，是否需要记录变动前的值。</li>
+  <li>attributeFilter：数组，表示需要观察的特定属性(比如说[‘class’,’src’]);</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">observer</span><span class="p">.</span><span class="nx">observe</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">,{</span>
+    <span class="na">childList</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">attributes</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">characterData</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">subtree</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">attributeOldValue</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">characterDataOldValue</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h5 id="taskrecoreds">taskRecoreds</h5>
+<p>taskRecoreds方法用于清楚变动记录，即不再处理未处理的变动。该方法返回变动记录的数组。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">changes</span> <span class="o">=</span> <span class="nx">observer</span><span class="p">.</span><span class="nx">taskRecords</span><span class="p">();</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">changes</span><span class="p">);</span>
+</code></pre></div></div>
+<h5 id="disconnect">disconnect</h5>
+<p>disconnect方法用来停止观察。调用该方法后，DOM再发生变动，也不会触发观察者对象。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">observer</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">();</span>
+</code></pre></div></div>
+<h4 id="mutationrecord对象">MutationRecord对象</h4>
+<p>DOM每次发生变化,就会生成一条变动记录(MutationRecord实例)。该实例包含了与变动相关的所有信息。MutationObserver处理的就是一个个MutationRecord实例组成的数组。</p>
+
+<p>MutationRecord包含了Dom的有关信息，有以下属性：</p>
+<ul>
+  <li>type：观察变动的类型(attribute、characterData或者childList)</li>
+  <li>target : 发生变动的DOM节点</li>
+  <li>addedNodes ：新增的DOM节点</li>
+  <li>removedNodes ： 删除的DOM节点。</li>
+  <li>previousSibling ： 前一个同级节点，如果没有则返回null。</li>
+  <li>nextSibling ： 下一个同级的节点，如果没有则返回null。</li>
+  <li>attributeName：发生变动的属性名，如果设置了attributeFilter，则只返回attributeFilter中的属性值。</li>
+  <li>oldValue：这个属性只对attribute和characterData变动生效，如果发生childList变动，则返回null。</li>
+</ul>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/4/5/169edd7e05ef0632?w=526&amp;h=266&amp;f=png&amp;s=24677" alt="" /></p>
+
+<h3 id="总结">总结</h3>
+<p>MutationObserver是异步操作，属于微任务，在Vue源码中实现<code class="highlighter-rouge">nextTick</code>的调度机制使用到了这个。
+<img src="https://user-gold-cdn.xitu.io/2019/4/5/169eddb64e5b28c6?w=743&amp;h=286&amp;f=png&amp;s=66045" alt="" />
+Vue中主要起到一个实现异步操作的调度机制，并没有真正体现到监听Dom变化的特点。</p>
+
+<p>我个人这个东西在监听Dom变化上还是有大作用的。我们在做性能监控的时候，通常会检测一些性能指标，例如：<code class="highlighter-rouge">FP、FCP、FMP</code>这些性能指标。<code class="highlighter-rouge">FMP</code>的标准定义不明确，通常是指Dom活动最大的时刻。所以说<code class="highlighter-rouge">FMP</code>比较难检测，通常采用body前后打<code class="highlighter-rouge">mark</code>的方式检测。使用这个API的话，可以检测哪个时间段Dom到文本中最多，也就可以说成活动最大。</p>
+
+<h3 id="最后">最后</h3>
+<p>这是<a href="https://caniuse.com/#search=MutationObserver">Can I Use</a>上的MutationObserver API的支持度。
+<img src="https://user-gold-cdn.xitu.io/2019/4/5/169ede5451dd1124?w=1586&amp;h=575&amp;f=png&amp;s=79233" alt="" /></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/04/06/message-channel/" data-toggle="tooltip" data-placement="top" title="MessageChannel消息频道">前一篇<br>
+                        <span>MessageChannel消息频道</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/04/06/mvvm-ie6/" data-toggle="tooltip" data-placement="top" title="如何在IE8以下实现数据的双向绑定">后一篇<br>
+                        <span>如何在IE8以下实现数据的双向绑定</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

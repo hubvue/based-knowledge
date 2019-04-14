@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>学习Bower - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/26/bower/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#前端工程化" title="前端工程化">前端工程化</a>
+                        
+                        <a class="tag" href="/tags/#Bower" title="Bower">Bower</a>
+                        
+                    </div>
+                    <h1>学习Bower</h1>
+                    
+                    
+                    <h2 class="subheading">Bower入门学习</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 26, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="bower">bower</h3>
+<p>bower是一个web包管理器，支持松散型的git。</p>
+
+<p>我们都知道npm是node模块的资源管理器，而bower是前端的资源管理器。</p>
+
+<p>首先安装bower到全局</p>
+<blockquote>
+  <p>npm install bower -g</p>
+</blockquote>
+
+<h3 id="bower的命令">bower的命令</h3>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    cache               bower缓存管理
+    help                 显示bower命令的帮助信息
+    home               通过浏览器打开一个包的github发布页
+    info                 查看包的信息
+    init                  创建bower.json文件
+    install              安装包到项目     
+    link                  在本地bower库建立一个项目连接
+    list                   列出项目已安装的包
+    lookup              根据包名查询包的url
+    prune               删除项目无关的包
+    register           注册一个包
+    search             搜索包
+    update             更新项目的包
+    uninstall          删除项目的包    
+</code></pre></div></div>
+<h3 id="bower应用">bower应用</h3>
+<h4 id="install安装包的四种方式">install:安装包的四种方式</h4>
+<p>以包名安装</p>
+<blockquote>
+  <p>bower install   packagename</p>
+</blockquote>
+
+<p>以git上短地址安装</p>
+<blockquote>
+  <p>bower install  desandro/masonry</p>
+</blockquote>
+
+<p>以github ssh地址安装</p>
+<blockquote>
+  <p>bower install git://github.com/user/package.git</p>
+</blockquote>
+
+<p>以http地址安装</p>
+<blockquote>
+  <p>bower install http://example.com/script.js</p>
+</blockquote>
+
+<h4 id="help">help</h4>
+<p>显示bower命令的帮助信息</p>
+<blockquote>
+  <p>bower help</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b0d7301dba16?w=649&amp;h=324&amp;f=png&amp;s=35057" alt="" /></p>
+<h4 id="home">home</h4>
+<p>通过浏览器打开一个包的github发布页</p>
+<blockquote>
+  <p>bower home jquery</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b0e9891b55fd?w=647&amp;h=68&amp;f=png&amp;s=8922" alt="" /></p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b0eda65c133a?w=1134&amp;h=210&amp;f=png&amp;s=25815" alt="" /></p>
+
+<h4 id="cache">cache</h4>
+<p>bower缓存管理</p>
+<blockquote>
+  <p>bower cache</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b0fede7a5d81?w=604&amp;h=90&amp;f=png&amp;s=12655" alt="" /></p>
+
+<h4 id="info">info</h4>
+<p>查看包的信息</p>
+<blockquote>
+  <p>bower info jqeury</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b1096aa9703a?w=641&amp;h=290&amp;f=png&amp;s=26591" alt="" /></p>
+
+<h4 id="init">init</h4>
+<p>初始化项目，创建bower.json文件</p>
+<blockquote>
+  <p>bower init</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b1139e4fb970?w=552&amp;h=418&amp;f=png&amp;s=40340" alt="" /></p>
+<h4 id="link">link</h4>
+<p>在本地bower库建立一个项目连接</p>
+<blockquote>
+  <p>bower link</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b1210b0ddbfb?w=643&amp;h=119&amp;f=png&amp;s=17127" alt="" /></p>
+<h4 id="list">list</h4>
+<p>列出项目已安装的包</p>
+<blockquote>
+  <p>bower list</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b12c9c6f853e?w=642&amp;h=181&amp;f=png&amp;s=26207" alt="" /></p>
+<h4 id="lookup">lookup</h4>
+<p>根据包名查询包的url</p>
+<blockquote>
+  <p>bower lookup jquery</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b138c46ed81e?w=527&amp;h=32&amp;f=png&amp;s=4580" alt="" /></p>
+
+<h4 id="search">search</h4>
+<p>搜索包</p>
+<blockquote>
+  <p>bower search jquery</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b146f2b44986?w=618&amp;h=324&amp;f=png&amp;s=54121" alt="" /></p>
+<h4 id="update">update</h4>
+<p>更新项目的包</p>
+<blockquote>
+  <p>bower update</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/23/1691b1505f15c1b9?w=641&amp;h=210&amp;f=png&amp;s=33846" alt="" /></p>
+<h4 id="uninstall">uninstall</h4>
+<p>删除项目的包</p>
+<blockquote>
+  <p>bower uninstall d3</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/24/1691b1632534f90e?w=639&amp;h=97&amp;f=png&amp;s=12291" alt="" /></p>
+<h4 id="prune">prune</h4>
+<p>删除项目无关的包</p>
+<blockquote>
+  <p>bower prune</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/24/1691b1840c5d9c9e?w=640&amp;h=115&amp;f=png&amp;s=21159" alt="" /></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/26/linux-start/" data-toggle="tooltip" data-placement="top" title="前端工程化Linux预备知识">前一篇<br>
+                        <span>前端工程化Linux预备知识</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/26/browserify/" data-toggle="tooltip" data-placement="top" title="学习browserify">后一篇<br>
+                        <span>学习browserify</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

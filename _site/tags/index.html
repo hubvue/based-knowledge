@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>标签 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/tags/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Page Header -->
+<header class="intro-header" style="background-image: url('https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1552812573775&di=86b9e0a45a9c01a737caee914a58512a&imgtype=0&src=http%3A%2F%2Fwww.talkimages.cn%2Fimages%2Fmedium%2F20133180%2Ftkm003_552367.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="site-heading" id="tag-heading">
+                    <h1>标签</h1>
+                    <span class="subheading"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row">
+		<div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <!-- 标签云 -->
+			<div id='tag_cloud' class="tags">
+				
+				<a href="#JavaScript" title="JavaScript" rel="7">JavaScript</a>
+				
+				<a href="#测试" title="测试" rel="1">测试</a>
+				
+				<a href="#PromiseA+" title="PromiseA+" rel="1">PromiseA+</a>
+				
+				<a href="#webpack" title="webpack" rel="2">webpack</a>
+				
+				<a href="#NodeJS" title="NodeJS" rel="10">NodeJS</a>
+				
+				<a href="#Express" title="Express" rel="5">Express</a>
+				
+				<a href="#网络" title="网络" rel="4">网络</a>
+				
+				<a href="#Nginx" title="Nginx" rel="1">Nginx</a>
+				
+				<a href="#爬虫" title="爬虫" rel="1">爬虫</a>
+				
+				<a href="#ES6" title="ES6" rel="1">ES6</a>
+				
+				<a href="#pm2" title="pm2" rel="1">pm2</a>
+				
+				<a href="#项目部署" title="项目部署" rel="1">项目部署</a>
+				
+				<a href="#hapi" title="hapi" rel="1">hapi</a>
+				
+				<a href="#socket" title="socket" rel="1">socket</a>
+				
+				<a href="#项目构建" title="项目构建" rel="1">项目构建</a>
+				
+				<a href="#Rollup" title="Rollup" rel="1">Rollup</a>
+				
+				<a href="#前端工程化" title="前端工程化" rel="8">前端工程化</a>
+				
+				<a href="#Linux" title="Linux" rel="4">Linux</a>
+				
+				<a href="#Bower" title="Bower" rel="1">Bower</a>
+				
+				<a href="#Browserify" title="Browserify" rel="1">Browserify</a>
+				
+				<a href="#持续集成" title="持续集成" rel="1">持续集成</a>
+				
+				<a href="#Grunt" title="Grunt" rel="1">Grunt</a>
+				
+				<a href="#Yeoman" title="Yeoman" rel="1">Yeoman</a>
+				
+				<a href="#Parcel" title="Parcel" rel="1">Parcel</a>
+				
+				<a href="#AOP" title="AOP" rel="1">AOP</a>
+				
+				<a href="#性能优化" title="性能优化" rel="3">性能优化</a>
+				
+				<a href="#TypeScript" title="TypeScript" rel="1">TypeScript</a>
+				
+				<a href="#web安全" title="web安全" rel="1">web安全</a>
+				
+				<a href="#React" title="React" rel="7">React</a>
+				
+				<a href="#Vue" title="Vue" rel="12">Vue</a>
+				
+				<a href="#MVVM" title="MVVM" rel="1">MVVM</a>
+				
+			</div>
+
+            <!-- 标签列表 -->
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="JavaScript">
+                    <span class="tag-text">JavaScript</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/06/mvvm-ie6/">
+				        <h2 class="post-title">
+                            如何在IE8以下实现数据的双向绑定
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            在ie6下实现数据双向绑定方法
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/06/mutationobserver/">
+				        <h2 class="post-title">
+                            学习MutationObserver
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            原生API-MutationObserver观察者
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/06/message-channel/">
+				        <h2 class="post-title">
+                            MessageChannel消息频道
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            学习MessageChannel消息频道
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/15/javascript-this/">
+				        <h2 class="post-title">
+                            [读书笔记]探索JavaScript中this机制
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            JavaScript中this机制的探索之旅
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/03/aop/">
+				        <h2 class="post-title">
+                            你所不知道的JavaScript面向切面编程
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            JavaScript面向切面编程小实战
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/22/PromiseA+/">
+				        <h2 class="post-title">
+                            手写一个PromiseA+
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            根据PromiseA+规范手写Promise
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/18/javascript-test/">
+				        <h2 class="post-title">
+                            JavaScript集成化测试
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            JavaScript单元测试、e2e测试、UI测试、接口测试
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="测试">
+                    <span class="tag-text">测试</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/18/javascript-test/">
+				        <h2 class="post-title">
+                            JavaScript集成化测试
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            JavaScript单元测试、e2e测试、UI测试、接口测试
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="PromiseA+">
+                    <span class="tag-text">PromiseA+</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/22/PromiseA+/">
+				        <h2 class="post-title">
+                            手写一个PromiseA+
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            根据PromiseA+规范手写Promise
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="webpack">
+                    <span class="tag-text">webpack</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/15/tree-shaking/">
+				        <h2 class="post-title">
+                            Webpack4:Tree-shaking深度解析
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            深度分析webpack4：Tree-shaking的使用及webpack-deep-scope-plugin的原理
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/webpack-config/">
+				        <h2 class="post-title">
+                            记一次webpack配置文件的分离
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            记一次webpack配置文件的分离思考
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="NodeJS">
+                    <span class="tag-text">NodeJS</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/11/node-debug/">
+				        <h2 class="post-title">
+                            Node终端debug
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            使用node终端进行代码调试
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/02/node-profile/">
+				        <h2 class="post-title">
+                            Node架构与优化入门篇
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            了解一下NodeJS的架构
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/01/robots/">
+				        <h2 class="post-title">
+                            node爬虫实战
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            使用nodejs进行爬虫实战
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node7/">
+				        <h2 class="post-title">
+                            Node.js文件系统
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Node文件系统方法总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node6/">
+				        <h2 class="post-title">
+                            Node.js全局方法和工具函数
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Node全局属性及常用方法util解析
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node5/">
+				        <h2 class="post-title">
+                            NodeJS路由及请求参数解析
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            node路由的使用和GET及POST方法的请求参数解析
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node4/">
+				        <h2 class="post-title">
+                            Node.js模块化
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Nodejs模块化及使用
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node3/">
+				        <h2 class="post-title">
+                            Node.js回调机制及事件驱动模型
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Node.js回调机制及事件驱动模型
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node2/">
+				        <h2 class="post-title">
+                            Node环境及npm命令的深入
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            nodeREPL环境及npm命令深入
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/23/node1/">
+				        <h2 class="post-title">
+                            NodeJS入门
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            NodeJS入门及搭建一个简单的Web服务
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Express">
+                    <span class="tag-text">Express</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/25/express-template/">
+				        <h2 class="post-title">
+                            express模板引擎的使用
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            experss模板引擎的使用
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/25/express-err-log/">
+				        <h2 class="post-title">
+                            express错误处理及log4js日志
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            express错误处理中间件的使用及log4js打印日志
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/25/express-middle/">
+				        <h2 class="post-title">
+                            express中间件
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            express中间件的使用及开发一个简单的中间件
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/25/express-router/">
+				        <h2 class="post-title">
+                            express路由的使用
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            express路由的使用方法和解析
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/25/express1/">
+				        <h2 class="post-title">
+                            express使用指南
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            express入门使用指南
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="网络">
+                    <span class="tag-text">网络</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/17/tcp-tree-four/">
+				        <h2 class="post-title">
+                            TCP协议及三次握手、四次挥手
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            史上最详细最容易理解的TCP和它家的三次握手、四次挥手
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/16/dns-cdn/">
+				        <h2 class="post-title">
+                            DNS域名解析原理及CDN(内容网络分发)
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            DNS域名解析原理及CDN原理解析
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/16/http-cache/">
+				        <h2 class="post-title">
+                            HTTP缓存策略
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            HTTP浏览器缓存解析及Nginx实战
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/28/http/">
+				        <h2 class="post-title">
+                            HTTP总结
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            对HTTP的总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Nginx">
+                    <span class="tag-text">Nginx</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/01/31/nginx/">
+				        <h2 class="post-title">
+                            Nginx反向代理和负载均衡总结
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            对Nginx反向代理和负载均衡配置的总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="爬虫">
+                    <span class="tag-text">爬虫</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/01/robots/">
+				        <h2 class="post-title">
+                            node爬虫实战
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            使用nodejs进行爬虫实战
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="ES6">
+                    <span class="tag-text">ES6</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/05/es6-use/">
+				        <h2 class="post-title">
+                            浏览器支持ES6的最优解决方案
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            如何让浏览器支持ES6的语法的解决方案
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="pm2">
+                    <span class="tag-text">pm2</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/05/pm2/">
+				        <h2 class="post-title">
+                            pm2项目部署总结
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            PM2项目部署总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="项目部署">
+                    <span class="tag-text">项目部署</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/05/pm2/">
+				        <h2 class="post-title">
+                            pm2项目部署总结
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            PM2项目部署总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="hapi">
+                    <span class="tag-text">hapi</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/09/hapi/">
+				        <h2 class="post-title">
+                            Hapi框架总结
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            学习node框架hapi的总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="socket">
+                    <span class="tag-text">socket</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/11/dataconnect/">
+				        <h2 class="post-title">
+                            三种数据推送的方案
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            使用comet、socket.io、SSE实现数据推送
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="项目构建">
+                    <span class="tag-text">项目构建</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/12/koa2-vue/">
+				        <h2 class="post-title">
+                            koa2+Vue构建SSR+CSR项目
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            本篇是使用koa2和vue构建SSR+CSR项目的总结
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Rollup">
+                    <span class="tag-text">Rollup</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/15/rollup/">
+				        <h2 class="post-title">
+                            Rollup简单入门
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            RollupJavaScript打包工具简单入门
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="前端工程化">
+                    <span class="tag-text">前端工程化</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/parcel-start/">
+				        <h2 class="post-title">
+                            Parcel初体验及特性分析
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            新型构建工具初探及特性分析
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/yeoman/">
+				        <h2 class="post-title">
+                            yeoman的使用
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Yeoman入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/grunt-start/">
+				        <h2 class="post-title">
+                            学习Grunt构建方式
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Gunt入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/ci-web/">
+				        <h2 class="post-title">
+                            前端工程化的持续集成
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            前端工程化持续集成
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/browserify/">
+				        <h2 class="post-title">
+                            学习browserify
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            browserify入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/bower/">
+				        <h2 class="post-title">
+                            学习Bower
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Bower入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/linux-start/">
+				        <h2 class="post-title">
+                            前端工程化Linux预备知识
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            工程化Linux知识学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/15/rollup/">
+				        <h2 class="post-title">
+                            Rollup简单入门
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            RollupJavaScript打包工具简单入门
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Linux">
+                    <span class="tag-text">Linux</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/01/linux-fr/">
+				        <h2 class="post-title">
+                            Linux的文件操作权限
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            解释Linux系统中的文件操作权限
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/01/linux-scp/">
+				        <h2 class="post-title">
+                            Linux的scp命令：传送文件
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Linux系统中scp命令的使用
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/linux-start/">
+				        <h2 class="post-title">
+                            前端工程化Linux预备知识
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            工程化Linux知识学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/linux-mianmi/">
+				        <h2 class="post-title">
+                            Linux的免密登录配置
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            SSH命令免密登录Linux云服务器配置
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Bower">
+                    <span class="tag-text">Bower</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/bower/">
+				        <h2 class="post-title">
+                            学习Bower
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Bower入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Browserify">
+                    <span class="tag-text">Browserify</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/browserify/">
+				        <h2 class="post-title">
+                            学习browserify
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            browserify入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="持续集成">
+                    <span class="tag-text">持续集成</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/ci-web/">
+				        <h2 class="post-title">
+                            前端工程化的持续集成
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            前端工程化持续集成
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Grunt">
+                    <span class="tag-text">Grunt</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/grunt-start/">
+				        <h2 class="post-title">
+                            学习Grunt构建方式
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Gunt入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Yeoman">
+                    <span class="tag-text">Yeoman</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/yeoman/">
+				        <h2 class="post-title">
+                            yeoman的使用
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Yeoman入门学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Parcel">
+                    <span class="tag-text">Parcel</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/02/26/parcel-start/">
+				        <h2 class="post-title">
+                            Parcel初体验及特性分析
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            新型构建工具初探及特性分析
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="AOP">
+                    <span class="tag-text">AOP</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/03/aop/">
+				        <h2 class="post-title">
+                            你所不知道的JavaScript面向切面编程
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            JavaScript面向切面编程小实战
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="性能优化">
+                    <span class="tag-text">性能优化</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/17/chrome-performance-plugin/">
+				        <h2 class="post-title">
+                            前端开发中的Chrome性能监控插件
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            多种前端开发性能监控插件
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/17/chrome-debug/">
+				        <h2 class="post-title">
+                            前端开发高级调试技巧
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            使用Chrome控制台调试前端代码
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/03/yahoo/">
+				        <h2 class="post-title">
+                            雅虎军规35条：引用自百度大佬
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            雅虎军规35条
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="TypeScript">
+                    <span class="tag-text">TypeScript</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/21/typescript/">
+				        <h2 class="post-title">
+                            TypeScript飞行手册
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            TypeScript入门
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="web安全">
+                    <span class="tag-text">web安全</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/21/xss/">
+				        <h2 class="post-title">
+                            XSS跨站脚本攻击
+				        </h2>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="React">
+                    <span class="tag-text">React</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/14/react16-renderreturn/">
+				        <h2 class="post-title">
+                            React16：render函数的多种返回值
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            React16新增render函数的返回值
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/24/react-event/">
+				        <h2 class="post-title">
+                            React事件表
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            总结一下事件表
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/24/react-contro-nocontro/">
+				        <h2 class="post-title">
+                            React可控组件与不可控组件
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            学习React的可控组件与不可控组件
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/24/react-left/">
+				        <h2 class="post-title">
+                            React 生命周期
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            学习React生命周期
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/23/react-props-state/">
+				        <h2 class="post-title">
+                            React props and state
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            React中属性和状态学习及二者之间的比较
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/23/react-jsx/">
+				        <h2 class="post-title">
+                            React JSX语法学习
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            React中JSX语法学习
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/23/react-start/">
+				        <h2 class="post-title">
+                            React初探及环境搭建
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            React初探，React环境搭建，编写第一个HelloWorld
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="Vue">
+                    <span class="tag-text">Vue</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/02/vue-mvvm-simple/">
+				        <h2 class="post-title">
+                            两种方式实现超简单的数据双向绑定
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            探究第一步：两种方式实现超简单的数据双向绑定
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/02/vue-keep-alive/">
+				        <h2 class="post-title">
+                            Vue组件缓存：Keep-alive
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue keep-alive组件缓存
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/02/vue-hooks-0/">
+				        <h2 class="post-title">
+                            Vue hooks初体验
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            初探Vue Hooks
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/01/vue-life/">
+				        <h2 class="post-title">
+                            Vue的生命周期
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            学习Vue的生命周期
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/vue-directive/">
+				        <h2 class="post-title">
+                            Vue-Directive
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue自定义指令
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/vue-transition/">
+				        <h2 class="post-title">
+                            Vue动画效果
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            初识Vue动画效果
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/vue-component-asyncdata/">
+				        <h2 class="post-title">
+                            Vue组件与异步获取数据的方式
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue定义组件，异步获取数据
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/vue-style/">
+				        <h2 class="post-title">
+                            Vue基础-样式转换
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue样式转换相关：style转换与class转换
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/vue-filters/">
+				        <h2 class="post-title">
+                            Vue初探-filter过滤器
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue filter过滤器相关知识
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/computed-watch/">
+				        <h2 class="post-title">
+                            Vue初探-计算属性与watch监听
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue计算属性及watch监听相关知识整理
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/vue-start/">
+				        <h2 class="post-title">
+                            Vue初探-基础
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue初探基础知识
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+				<div class="post-preview">
+				    <a href="/2019/03/31/directive-system/">
+				        <h2 class="post-title">
+                            Vue初探-指令系统
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            Vue指令系统相关知识点及例子
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="MVVM">
+                    <span class="tag-text">MVVM</span>
+                </span>
+				
+				<div class="post-preview">
+				    <a href="/2019/04/06/mvvm-ie6/">
+				        <h2 class="post-title">
+                            如何在IE8以下实现数据的双向绑定
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            在ie6下实现数据双向绑定方法
+				        </h3>
+				        
+				    </a>
+				</div>
+				<hr>
+				
+			</div>
+			
+
+		</div>
+	</div>
+</div>
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

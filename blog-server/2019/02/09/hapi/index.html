@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Hapi框架总结 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/09/hapi/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#hapi" title="hapi">hapi</a>
+                        
+                    </div>
+                    <h1>Hapi框架总结</h1>
+                    
+                    
+                    <h2 class="subheading">学习node框架hapi的总结</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 9, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="hapi">hapi</h3>
+<p>hapi是一款用于构建应用程序和服务的丰富框架。它的使命在于配置优于代码，业务逻辑必须和传输层进行分离。</p>
+<h3 id="使用hapi搭建一个简单的web应用">使用hapi搭建一个简单的web应用</h3>
+<h4 id="初始化项目">初始化项目</h4>
+<blockquote>
+  <p>npm init -y</p>
+</blockquote>
+
+<h4 id="安装hapi">安装hapi</h4>
+<blockquote>
+  <p>npm install hapi –save</p>
+</blockquote>
+
+<p>在项目根目录创建app.js文件，代码如下：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Hapi</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'hapi'</span><span class="p">);</span>   <span class="c1">//引入hapi</span>
+<span class="kd">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">Hapi</span><span class="p">.</span><span class="nx">server</span><span class="p">({</span>    <span class="c1">//创建服务</span>
+    <span class="na">host</span> <span class="p">:</span> <span class="s1">'localhost'</span><span class="p">,</span>
+    <span class="na">port</span> <span class="p">:</span> <span class="mi">8080</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="k">async</span> <span class="p">()</span><span class="o">=&gt;</span><span class="p">{</span>
+    <span class="c1">//注册路由</span>
+    <span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+        <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+        <span class="na">path</span> <span class="p">:</span> <span class="s1">'/'</span><span class="p">,</span>
+        <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="s1">'Hello World'</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="c1">//启动服务</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`Server is running:</span><span class="p">${</span><span class="nx">server</span><span class="p">.</span><span class="nx">info</span><span class="p">.</span><span class="nx">uri</span><span class="p">}</span><span class="s2">`</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nx">start</span><span class="p">();</span>
+<span class="c1">//监听错误信息</span>
+<span class="nx">process</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'unhandleRejection'</span><span class="p">,(</span><span class="nx">err</span><span class="p">)</span><span class="o">=&gt;</span><span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="启动项目">启动项目</h4>
+<blockquote>
+  <p>node app.js</p>
+</blockquote>
+
+<p>访问127.0.0.1:8080。</p>
+
+<h3 id="hapi路由">hapi路由</h3>
+<p>hapi的路由和Express、koa等路由有些不太相同，也突出了它的配置优于代码的观点。</p>
+
+<h4 id="路由管理">路由管理</h4>
+<p>在项目根目录下创建routes文件夹，在其中创建index.js作为路由管理中心。例如：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//test.js中</span>
+<span class="kd">const</span> <span class="nx">test</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/test'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=</span><span class="err">。</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s1">'test'</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+    <span class="c1">//test.js中的路由在这里导出</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="nx">test</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="c1">//hello.js中</span>
+<span class="kd">const</span> <span class="nx">hello</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/hello'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s1">'Hello world'</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+    <span class="c1">//hello.js中注册的路由在这里导出</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="nx">hello</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="c1">//index.js中---路由注册中心</span>
+    <span class="c1">//把子路由导入这里</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="nx">require</span><span class="p">(</span><span class="s1">'./test.js'</span><span class="p">),</span>
+    <span class="nx">require</span><span class="p">(</span><span class="s1">'./hello.js'</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1">//在app.js中</span>
+<span class="kd">const</span> <span class="nx">routes</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'./routes'</span><span class="p">);</span>
+<span class="c1">//将所有的路由进行注册</span>
+<span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="p">()</span><span class="o">=&gt;</span><span class="p">{</span>
+    <span class="kr">await</span> <span class="nx">routes</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span><span class="o">=&gt;</span><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">(</span><span class="nx">item</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>上述代码中使用index路由进行路由的统一管理与注册。</p>
+
+<h4 id="路由方法">路由方法</h4>
+<p>如果想让一个路由同时具有多个HTTP方法，可以把method属性改成数组。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="p">[</span><span class="s1">'GET'</span><span class="p">,</span><span class="s1">'POST'</span><span class="p">,</span><span class="s1">'PUT'</span><span class="p">],</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s1">'Hello world'</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="路由路径">路由路径</h4>
+<p>hapi中的路由路径必须是一个字符串，如果想在路径中使用参数必须用{}包裹起来，相当于其他框架中的路由参数，同哟request.params来取得路由参数。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/test/{name}'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s2">`Hello </span><span class="p">${</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="s2">;`</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="路径的可选参数">路径的可选参数</h4>
+<p>在上面例子中，name参数是必须有的，没有的话就会报错。在参数后面加?的话就把这个参数改成了可选的。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/test/{name?}'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s2">`Hello </span><span class="p">${</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="s2">;`</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="路由参数的多段参数">路由参数的多段参数</h4>
+<p>在上面的例子中，在name后面加上*就表示这个参数是多段的，例如：/test/a/b、/test/a/b/c等等。同时如果星号后面加数字的话，就确定了段数。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/test/{name*}'</span><span class="p">,</span>
+    <span class="c1">//path : '/test/{name * 2}'</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s2">`Hello </span><span class="p">${</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="s2">;`</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="路由中的handler方法">路由中的handler方法</h4>
+<p>handler方法是一个接受两个参数的函数，一个是request、一个是h。</p>
+<ol>
+  <li>request 是用户请求对象的具体信息，例如参数、请求内容数据, 授权信息以及http头部信息等。</li>
+  <li>h 是响应处理对象，它包含了一些处理请求的方法。</li>
+</ol>
+
+<h3 id="hapi插件">hapi插件</h3>
+<p>hapi 拥有一个可扩展并且强健的插件系统，它允许你将应用分割为独立的业务逻辑或者可重用的组件。hapi拥有server.register方法用来注册插件。</p>
+
+<h4 id="载入插件">载入插件</h4>
+<p>插件可以一次载入一个，也可以通过方法 server.register() 分组载入</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="k">async</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// 载入一个插件</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="nx">require</span><span class="p">(</span><span class="s1">'myplugin'</span><span class="p">));</span>
+    <span class="c1">// 载入多个插件</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">register</span><span class="p">([</span><span class="nx">require</span><span class="p">(</span><span class="s1">'myplugin'</span><span class="p">),</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'yourplugin'</span><span class="p">)]);</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<p>要将选项传递给插件时，我们将传递一个拥有 plugin 和 options 作为键的对象。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="k">async</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">//载入单个</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">register</span><span class="p">({</span>
+        <span class="na">plugin</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'myplugin'</span><span class="p">),</span>
+        <span class="na">options</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">message</span><span class="p">:</span> <span class="s1">'hello'</span>
+        <span class="p">}</span>
+    <span class="p">});</span>
+    <span class="c1">//载入多个</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">register</span><span class="p">([{</span>
+        <span class="na">plugin</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'plugin1'</span><span class="p">),</span>
+        <span class="na">options</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">},</span> <span class="p">{</span>
+        <span class="na">plugin</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'plugin2'</span><span class="p">),</span>
+        <span class="na">options</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">}]);</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<h4 id="自己创建一个插件">自己创建一个插件</h4>
+<p>插件的核心是一个拥有register属性的对象，其属性值是一个拥有async function(server,options)签名的函数。除此之外还有name、version等其他属性。</p>
+<pre><code class="language-JavaScript">const myPlugin = {
+    //当作为一个外部模块时，需要指定pkg，
+    pkg:require('./package.json'),
+    name : 'myPlugin',
+    version : 1.0.0,
+    register : async (server,options) =&gt; {
+         server.route({
+            method: 'GET',
+            path: '/test',
+            handler: function (request, h) {
+                return 'hello, world';
+            }
+        });
+        //其他方法
+    }
+}
+</code></pre>
+
+<h3 id="cookie">Cookie</h3>
+<p>Cookie作为数据持久化在服务端是非常重要的一个了。hapi使用cookie首先必须要使用server.state(name,[options])来配置</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,{</span>   <span class="c1">//cooki的名字</span>
+    <span class="na">ttl</span> <span class="p">:</span> <span class="kc">null</span><span class="p">,</span>  <span class="c1">//cookie的生存时间</span>
+    <span class="na">isSecure</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span>  <span class="c1">//是否是安全的</span>
+    <span class="na">isHttpOnly</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span> <span class="c1">//是否只支持HTTP</span>
+    <span class="na">encodeing</span> <span class="p">:</span> <span class="s1">'base64json'</span><span class="p">,</span> <span class="c1">//base64编码的json字符串</span>
+    <span class="na">clearInvalid</span> <span class="p">:</span><span class="kc">false</span><span class="p">,</span>
+    <span class="na">strictHeader</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<h4 id="设置一个cookie">设置一个Cookie</h4>
+<p>在路由中设置cookie通过h.state(name,value,[options])方法来设置</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span><span class="p">{</span>
+        <span class="nx">h</span><span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="s1">'data'</span><span class="p">.</span><span class="s1">'test'</span><span class="p">);</span><span class="c1">//cookie名为data 值为test</span>
+        <span class="k">return</span>  <span class="nx">h</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="s1">'Hello'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h5 id="第三个参数">第三个参数</h5>
+<p>可以通过第三个参数来单独设置cookie的配置,例如，不使用编码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span> <span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span> <span class="p">:</span> <span class="s1">'/'</span><span class="p">,</span>
+    <span class="na">handler</span> <span class="p">:</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="nx">h</span><span class="p">)</span> <span class="o">=&gt;</span><span class="p">{</span>
+        <span class="nx">h</span><span class="p">.</span><span class="nx">state</span><span class="p">(</span><span class="s1">'data'</span><span class="p">.</span><span class="s1">'test'</span><span class="p">,{</span><span class="na">encoding</span><span class="p">:</span><span class="nx">none</span><span class="p">});</span>
+        <span class="k">return</span>  <span class="nx">h</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="s1">'Hello'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h5 id="链式调用">链式调用</h5>
+<p>路由的h上的方法可以链式调用，显得更加方便。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="s1">'Hello'</span><span class="p">).</span><span class="nx">state</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="s1">'test'</span><span class="p">,</span> <span class="p">{</span> <span class="na">encoding</span><span class="p">:</span> <span class="s1">'none'</span> <span class="p">});</span>
+</code></pre></div></div>
+
+<h4 id="获取一个cookie">获取一个Cookie</h4>
+<p>如果想在服务端获取一个cookie，使用request上的state属性就可以获取,例如上面注册了一个data的cookie</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+</code></pre></div></div>
+<h4 id="清理cookie">清理Cookie</h4>
+<p>在服务端h上调用unstat(name)方法，可以清除cookie。注意的是：这个只是将cookie的值清空，并未删除这个cookie</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">response</span><span class="p">(</span><span class="s1">'Hello'</span><span class="p">).</span><span class="nx">unstate</span><span class="p">(</span><span class="s1">'data'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="静态内容">静态内容</h3>
+<p>如果想在hapi中引入静态内容，必须引入inert插件</p>
+<blockquote>
+  <p>npm install inert –save</p>
+</blockquote>
+
+<p>在app.js中注册插件</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="nx">require</span><span class="p">(</span><span class="s1">'inert'</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<h4 id="hfilepath-options">h.file(path, [options])</h4>
+<p>使用可以方法可以指定一个文件输出，并且只能是绝对路径</p>
+<pre><code class="language-JavaScript">const path = require('path');
+ server.route({
+    method: 'GET',
+    path: '/index',
+    handler: function (request, h) {
+        return h.file(path.join(__dirname,'..','index.html'));
+    }
+});
+</code></pre>
+<h4 id="相对路径">相对路径</h4>
+<p>如果想在路由中使用相对路径，一个办法就是在服务器配置route的基本路径，之后之将相对路径传递给h.file()就可以了。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//app.js中</span>
+<span class="kd">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">Hapi</span><span class="p">.</span><span class="nx">server</span><span class="p">({</span>
+    <span class="na">routes</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">files</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">relativeTo</span><span class="p">:</span> <span class="nx">Path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="s1">'public'</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+<span class="c1">//route中</span>
+ <span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span><span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span><span class="p">:</span> <span class="s1">'/index'</span><span class="p">,</span>
+    <span class="na">handler</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">h</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">file</span><span class="p">(</span><span class="s1">'./index.html'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<h4 id="文件handler">文件handler</h4>
+<p>开始就说hapi这个框架是配置优于代码。这里也是充分体现，上述代码handler是一个函数，到文件handler这里就是对象属性配置了。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span><span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span><span class="p">:</span> <span class="s1">'/index'</span><span class="p">,</span>
+    <span class="na">handler</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">file</span> <span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">request</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="s1">'index.html'</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>这个file还可以继续配置化。它也可以是具有 path 属性的对象。当在 handler 中使用对象时，我们可以附加一些别的东西，如设 Content-Disposition 头并允许压缩文件。如下:</p>
+<pre><code class="language-JavaScript">server.route({
+    method: 'GET',
+    path: '/script.js',
+    handler: {
+        file: {
+            path: 'script.js',
+            filename: 'client.js', // 修改 Content-Disposition 头中的文件名
+            mode: 'attachment', // 指定 Content-Disposition 是一个附件
+            lookupCompressed: true // 如果请求允许，将允许查找 script.js.gz
+        }
+    }
+});
+</code></pre>
+<h4 id="目录handler">目录handler</h4>
+<p>除了文件handler 还可以目录handler<a href="https://hapijs.com/tutorials/serving-files?lang=zh_CN">目录handler</a></p>
+
+<h3 id="数据验证">数据验证</h3>
+<p>验证通过joi这个模块进行验证。</p>
+
+<h4 id="路径参数">路径参数</h4>
+<p>在路由的pat中使用命名参数的时候，可以指定命名参数的类型及长度。当不符合标准的时候会得到HTTP400响应错误。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span><span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span><span class="p">:</span> <span class="s1">'/hello/{name}'</span><span class="p">,</span>
+    <span class="na">handler</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">h</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="s2">`Hello </span><span class="p">${</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="s2">!`</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="na">options</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">validate</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">params</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">name</span><span class="p">:</span> <span class="nx">Joi</span><span class="p">.</span><span class="nx">string</span><span class="p">().</span><span class="nx">min</span><span class="p">(</span><span class="mi">3</span><span class="p">).</span><span class="nx">max</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<h4 id="查询参数">查询参数</h4>
+<p>查询验证是GET方法中带的参数，类似于上面。默认情况下 hapi 不做任何验证，但是如果一但为一个查询参数添加验证时，这将意味着你 必须 为你所接受的所有查询参数添加验证。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span><span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span><span class="p">:</span> <span class="s1">'/posts'</span><span class="p">,</span>
+    <span class="na">handler</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">h</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">request</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">limit</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="na">options</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">validate</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">query</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">limit</span><span class="p">:</span> <span class="nx">Joi</span><span class="p">.</span><span class="nx">number</span><span class="p">().</span><span class="nx">integer</span><span class="p">().</span><span class="nx">min</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="nx">max</span><span class="p">(</span><span class="mi">100</span><span class="p">).</span><span class="k">default</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>其他方法参考<a href="https://hapijs.com/tutorials/validation?lang=zh_CN">数据验证的其他方法</a></p>
+
+<h3 id="视图">视图</h3>
+<p>几乎所有的node框架都支持服务端渲染模板的，这个也不例外，也是支持的。hapi的服务端渲染引擎、部分渲染、辅助工具 (模板中用于操作数据的函数)以及布局功能。都是vision这个插件提供了。因此使用的时候必须要注册这个插件。hapi使用的服务端渲染的模板引擎是handlbars。</p>
+
+<h4 id="安装插件和模板引擎">安装插件和模板引擎</h4>
+<blockquote>
+  <p>npm install vision handlebars –save</p>
+</blockquote>
+
+<h4 id="配置模板引擎">配置模板引擎</h4>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kr">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="nx">require</span><span class="p">(</span><span class="s1">'vision'</span><span class="p">));</span>
+    <span class="nx">server</span><span class="p">.</span><span class="nx">views</span><span class="p">({</span>
+        <span class="na">engines</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">html</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'handlebars'</span><span class="p">)</span>
+        <span class="p">},</span>
+        <span class="na">relativeTo</span><span class="p">:</span> <span class="nx">__dirname</span><span class="p">,</span>  <span class="c1">//这里是一些路径参数</span>
+        <span class="na">path</span><span class="p">:</span> <span class="s1">'templates'</span>
+    <span class="p">});</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<ol>
+  <li>path : 包含你主要模板的路径</li>
+  <li>partialsPath : 部分内容的路径</li>
+  <li>helpersPath : 模板辅助工具的路径</li>
+  <li>layoutPath : 布局模板的路径</li>
+  <li>relativeTo : 用于指定其他路径的前缀。当指定后，其余路径则都可以相对于此路径</li>
+</ol>
+
+<h4 id="iscached">isCached</h4>
+<p>如果设置为 false ， hapi 将不会缓存模板引擎渲染的结果，而是每次都去读取模板文件并渲染。 在开发阶段非常方便。</p>
+<h4 id="渲染一个视图">渲染一个视图</h4>
+<p>渲染视图有两种方式：一种是通过h.view()，一种是通过视图handler</p>
+<h5 id="hview">h.view()</h5>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span><span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span><span class="p">:</span> <span class="s1">'/'</span><span class="p">,</span>
+    <span class="na">handler</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">h</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">view</span><span class="p">(</span><span class="s1">'index'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>h.view()的第二个参数可以指定传递要渲染的内容</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">view</span><span class="p">(</span><span class="s1">'index'</span><span class="p">,</span> <span class="p">{</span> <span class="na">title</span><span class="p">:</span> <span class="s1">'My home page'</span> <span class="p">});</span>
+</code></pre></div></div>
+<h5 id="视图-handler">视图 handler</h5>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">route</span><span class="p">({</span>
+    <span class="na">method</span><span class="p">:</span> <span class="s1">'GET'</span><span class="p">,</span>
+    <span class="na">path</span><span class="p">:</span> <span class="s1">'/'</span><span class="p">,</span>
+    <span class="na">handler</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">view</span><span class="p">:</span> <span class="s1">'index'</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>当使用视图 handler 时,内容作为 context 的值传入, 如:</p>
+<pre><code class="language-JavaScript">handler: {
+    view: {
+        template: 'index',
+        context: {
+            title: 'My home page'
+        }
+    }
+}
+</code></pre>
+<h4 id="全局内容传递">全局内容传递</h4>
+<p>最简单的方式是在调用 server.views() 使用 context 选项</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">context</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">title</span><span class="p">:</span> <span class="s1">'My personal site'</span>
+<span class="p">};</span>
+
+<span class="nx">server</span><span class="p">.</span><span class="nx">views</span><span class="p">({</span>
+    <span class="na">engines</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">html</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">module</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'handlebars'</span><span class="p">),</span>
+            <span class="na">compileMode</span><span class="p">:</span> <span class="s1">'sync'</span> <span class="c1">// engine specific</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="nx">context</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<h4 id="视图辅助工具">视图辅助工具</h4>
+<p>视图的辅助工具同样的也是服务端渲染。</p>
+
+<p>在views下面创建一个helpers文件夹，创建fortune.js 文件，内容如下：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+    <span class="kd">const</span> <span class="nx">fortunes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">'Heisenberg may have slept here...'</span><span class="p">,</span>
+        <span class="s1">'Wanna buy a duck?'</span><span class="p">,</span>
+        <span class="s1">'Say no, then negotiate.'</span><span class="p">,</span>
+        <span class="s1">'Time and tide wait for no man.'</span><span class="p">,</span>
+        <span class="s1">'To teach is to learn.'</span><span class="p">,</span>
+        <span class="s1">'Never ask the barber if you need a haircut.'</span><span class="p">,</span>
+        <span class="s1">'You will forget that you ever knew me.'</span><span class="p">,</span>
+        <span class="s1">'You will be run over by a beer truck.'</span><span class="p">,</span>
+        <span class="s1">'Fortune favors the lucky.'</span><span class="p">,</span>
+        <span class="s1">'Have a nice day!'</span>
+    <span class="p">];</span>
+
+    <span class="kd">const</span> <span class="nx">x</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span> <span class="o">*</span> <span class="nx">fortunes</span><span class="p">.</span><span class="nx">length</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nx">fortunes</span><span class="p">[</span><span class="nx">x</span><span class="p">];</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<p>在views下创建index.html内容如下</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;h1&gt;</span>Your fortune<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;p&gt;&lt;/p&gt;</span>  <span class="c">&lt;!--这里注意一定要和helpers中的文件的名字相同--&gt;</span>
+</code></pre></div></div>
+<h4 id="布局">布局</h4>
+<p>vision 对于视图布局有一些内建的支持，这个功能默认是关闭的，因为它可能会和一些特定的模板引擎冲突，因此我们建议只使用一种布局系统。</p>
+
+<p>如果要使用内建的布局系统，首先需要设置视图引擎:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">views</span><span class="p">({</span>
+    <span class="c1">// ...</span>
+    <span class="na">layout</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">layoutPath</span><span class="p">:</span> <span class="s1">'views/layout'</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>在views中创建layout文件夹，创建layout.html，内容如下：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+ <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+<p>之后的视图就不需要写骨架了。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div&gt;</span>Content<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+<p>当渲染这个视图时 将会被视图中的内容替换。</p>
+
+<p>可以通过全局配置来修改这个默认布局:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">server</span><span class="p">.</span><span class="nx">views</span><span class="p">({</span>
+    <span class="c1">// ...</span>
+    <span class="na">layout</span><span class="p">:</span> <span class="s1">'another_default'</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>你也可以为每一个视图指定一个布局:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">view</span><span class="p">(</span><span class="s1">'myview'</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="p">{</span> <span class="na">layout</span><span class="p">:</span> <span class="s1">'another_layout'</span> <span class="p">});</span>
+</code></pre></div></div>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/05/pm2/" data-toggle="tooltip" data-placement="top" title="pm2项目部署总结">前一篇<br>
+                        <span>pm2项目部署总结</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/11/node-debug/" data-toggle="tooltip" data-placement="top" title="Node终端debug">后一篇<br>
+                        <span>Node终端debug</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

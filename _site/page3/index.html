@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/page3/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Page Header -->
+<header class="intro-header" style="background-image: url('img/bg/bg_index.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
+                <div class="site-heading">
+                    <h1>Tomorrow</h1>
+                    <!--<hr class="small">-->
+                    <span class="subheading">我学了多少技术   读了多少本书  </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+	<div class="row">
+        
+
+<!-- USE SIDEBAR -->
+    <!-- PostList Container -->
+    		<div class="
+                col-lg-8 col-lg-offset-1
+                col-md-8 col-md-offset-1
+                col-sm-12
+                col-xs-12
+                postlist-container
+            ">
+    			
+<div class="post-preview">
+    <a href="/2019/03/23/react-jsx/">
+        <h2 class="post-title">
+            React JSX语法学习
+        </h2>
+        
+        <h3 class="post-subtitle">
+            React中JSX语法学习
+        </h3>
+        
+        <div class="post-content-preview">
+            JSX语法的介绍
+JSX(JavaScript XML) 是基于ECMAScript的一种新特性一种定义带属性树结构的语法。它不是XML或者HTML的一种限制，可以说是对它们的一种。
+
+官网
+
+JSX语法的书写方式
+JSX语法有两种书写方式：一种是ES5的书写方式(现在不适用,还是要记一下吧，以免以后忘了)，一种是ES6的书写方式。
+
+ES5的方式
+
+ES5使用React.crateClas...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/23/react-start/">
+        <h2 class="post-title">
+            React初探及环境搭建
+        </h2>
+        
+        <h3 class="post-subtitle">
+            React初探，React环境搭建，编写第一个HelloWorld
+        </h3>
+        
+        <div class="post-content-preview">
+            什么是React
+React是Facebook开发的一款用来构建用户界面的js库，对于react来讲还可以应用到nodejs，做同构化应用。
+对于React自己来说，React只做的是非常纯粹的View层。React结合自己庞大的组件库，形成了MVVM框架。
+
+React特性
+Virtual DOM
+Virtual DOM是一个模拟DOM树的JavaScript对象。React使用Virtu...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 23, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/21/xss/">
+        <h2 class="post-title">
+            XSS跨站脚本攻击
+        </h2>
+        
+        <div class="post-content-preview">
+            什么是XSS
+XSS是跨站脚本攻击，是发生在目标用户浏览器层面上的。当渲染DOM树的过程中发生了再预期内执行的JavaScript代码时，就发生了XSS攻击
+
+XSS的攻击方式
+XSS的攻击方式有三种：
+
+  反射型XSS
+  存储型XSS
+  DOM XSS
+
+
+反射型XSS
+反射型XSS也叫非持久型XSS，是指发生请求时，XSS代码出现在请求URL中，作为参数提交给服务器，服务器解析并响...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 21, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/21/typescript/">
+        <h2 class="post-title">
+            TypeScript飞行手册
+        </h2>
+        
+        <h3 class="post-subtitle">
+            TypeScript入门
+        </h3>
+        
+        <div class="post-content-preview">
+            TypeScript介绍
+简介
+TypeScript是微软开发的JavaScript的超集，TypeScript兼容JavaScript，可以载入JavaScript代码然后运行。
+TypeScript与JavaScript的比较
+TypeScript与JavaScript相比进步的地方包括：加入注释，让编辑器理解所支持的对象和函数，编译器会移除注释，不会增加开销；增加一个完整的类结构，使之...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 21, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/17/chrome-performance-plugin/">
+        <h2 class="post-title">
+            前端开发中的Chrome性能监控插件
+        </h2>
+        
+        <h3 class="post-subtitle">
+            多种前端开发性能监控插件
+        </h3>
+        
+        <div class="post-content-preview">
+            Audits面板
+Audits是性能监控中的合成监控。
+
+  所谓合成监控就是计算机可以模拟网站走一边，实现简单，可以对渲染中的每一帧进行截图。
+
+
+
+上面选项可以选择Desktop或者Mobile进行监控，点击Run audits就可以进行监控了。
+
+但是这个有一点不好的是，监控出来的报告是英文的，对于英文不好的来说就不易阅读。
+
+还有一个Chrome插件叫做Lighthouse和Audi...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 17, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/17/chrome-debug/">
+        <h2 class="post-title">
+            前端开发高级调试技巧
+        </h2>
+        
+        <h3 class="post-subtitle">
+            使用Chrome控制台调试前端代码
+        </h3>
+        
+        <div class="post-content-preview">
+            断点以及捕获事件的绑定
+断点
+断点代码调试方式在编辑器中也可以调试，本次采用Chrome控制台调试。首先打开我们要调试的网站，按F12会弹出浏览器控制台或者右键点击打开审查元素，会看到这样一个界面。
+
+最上面一层是导航，其中第三个就是存放源代码的地方。打开
+
+然后寻找到所要调试的文件，例如我们找到index。
+
+点击代码左边这一排数字，就可以对每一行代码打上断点。
+
+
+可以看到打上断点可以在...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 17, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/17/tcp-tree-four/">
+        <h2 class="post-title">
+            TCP协议及三次握手、四次挥手
+        </h2>
+        
+        <h3 class="post-subtitle">
+            史上最详细最容易理解的TCP和它家的三次握手、四次挥手
+        </h3>
+        
+        <div class="post-content-preview">
+            网络协议模型
+
+网络中的网络协议模型共有两种：一种是网络标准OSI/ISO七层协议模型，一种是使用广泛TCP/IP五层协议模型。上图就是OSI/IOS七层协议模型。其实这两种都差不多，TCP/IP五层协议模型是把OSI/IOS七层模型的上三层合并成为了应用层。
+
+
+数据在网络上的传输过程
+在网络传输上共有两个角色：客户端和服务端。客户端发送请求，服务端响应请求。网络请求在网络协议模型上是一个...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 17, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/16/dns-cdn/">
+        <h2 class="post-title">
+            DNS域名解析原理及CDN(内容网络分发)
+        </h2>
+        
+        <h3 class="post-subtitle">
+            DNS域名解析原理及CDN原理解析
+        </h3>
+        
+        <div class="post-content-preview">
+            DNS
+DNS(Domain Name System),域名解析，用于将域名转换成IP。
+
+为什么要进行域名解析
+一般我们在访问一个网站的时候，我们在地址栏里面输入的是域名，很少有人去输入IP来访问。比如说blog.ctomorrow.top，当我们把这段域名输入到地址栏中后，因为域名是字符串，浏览器是无法解析字符串的，所以要把域名解析成IP地址才可以进行访问。
+
+如何配置域名
+当我们在买了...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 16, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/16/http-cache/">
+        <h2 class="post-title">
+            HTTP缓存策略
+        </h2>
+        
+        <h3 class="post-subtitle">
+            HTTP浏览器缓存解析及Nginx实战
+        </h3>
+        
+        <div class="post-content-preview">
+            缓存的定义
+缓存就是数据交换的缓冲区（称作Cache），这个概念最初是来自于内存和CPU。当某一硬件要读取数据时，会首先从缓存中查找需要的数据，如果找到了则直接执行，找不到的话则从内存中找。由于缓存的运行速度比内存快得多，故缓存的作用就是帮助硬件更快地运行。
+
+Web缓存
+客户端和服务器之间是通过请求和响应来相互通信的。
+
+
+  请求的本质就是从客户端向服务器发起请求，获取服务器资源(图片、...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 16, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/15/javascript-this/">
+        <h2 class="post-title">
+            [读书笔记]探索JavaScript中this机制
+        </h2>
+        
+        <h3 class="post-subtitle">
+            JavaScript中this机制的探索之旅
+        </h3>
+        
+        <div class="post-content-preview">
+            我在想写这篇文章的时候，我是无从下手的。因为我自己也同样说不清在JavaScript中this到底是什么？我们都知道在一些强类型语言中（像java）对this有一个很好的定义：this就是一个指针，指向当前对象。在JavaScript中如果用上面这种方法来表示this的话，是不完全的。对于我来说，this就像JavaScript中的魔术师，千变万化中又有着那么一丝丝小套路。
+何为this？
+...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on March 15, 2019
+    </p>
+</div>
+<hr>
+
+
+<!-- Pager -->
+
+<ul class="pager">
+    
+    <li class="previous">
+        <a href="/page2">&larr; 上一页</a>
+    </li>
+    
+    
+    <li class="next">
+        <a href="/page4">下一页 &rarr;</a>
+    </li>
+    
+</ul>
+
+
+    		</div>
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-3 col-lg-offset-0
+                col-md-3 col-md-offset-0
+                col-sm-12
+                col-xs-12
+                sidebar-container
+            ">
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">热门标签</a></h5>
+                    <div class="tags">
+                        
+                            
+                                <a href="/tags/#JavaScript" title="JavaScript" rel="7">
+                                    JavaScript
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#webpack" title="webpack" rel="2">
+                                    webpack
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#NodeJS" title="NodeJS" rel="10">
+                                    NodeJS
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Express" title="Express" rel="5">
+                                    Express
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#网络" title="网络" rel="4">
+                                    网络
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#前端工程化" title="前端工程化" rel="8">
+                                    前端工程化
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Linux" title="Linux" rel="4">
+                                    Linux
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#性能优化" title="性能优化" rel="3">
+                                    性能优化
+                                </a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#React" title="React" rel="7">
+                                    React
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#Vue" title="Vue" rel="12">
+                                    Vue
+                                </a>
+                            
+                        
+                            
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Short About -->
+                <section class="visible-md visible-lg">
+                    <hr><h5><a href="/about/">关于我</a></h5>
+                    <div class="short-about">
+                        
+                            <img src="https://user-gold-cdn.xitu.io/2019/2/20/1690b510d7c0bd79?imageView2/1/w/180/h/180/q/85/format/webp/interlace/1" />
+                        
+                        
+                            <p>一位不知名的小前端</p>
+                        
+                        <!-- SNS Link -->
+                        <ul class="list-inline">
+                            
+                            <li>
+                                <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa  fa-stack-1x fa-inverse">C</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            <!--  -->
+                            
+                            <li>
+                                <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-stack-1x fa-inverse">掘</i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                            
+                            <li>
+                                <a target="_blank" href="https://github.com/hubvue">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </section>
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>友情链接</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="https://www.leer.live/">知足常乐的博客</a></li>
+                    
+                </ul>
+                
+    		</div>
+        
+	</div>
+</div>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

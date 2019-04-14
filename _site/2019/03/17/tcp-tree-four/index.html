@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>TCP协议及三次握手、四次挥手 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/03/17/tcp-tree-four/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('https://user-gold-cdn.xitu.io/2019/3/17/16987c047d3f65e0?imageView2/1/w/1304/h/734/q/85/format/webp/interlace/1')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#网络" title="网络">网络</a>
+                        
+                    </div>
+                    <h1>TCP协议及三次握手、四次挥手</h1>
+                    
+                    
+                    <h2 class="subheading">史上最详细最容易理解的TCP和它家的三次握手、四次挥手</h2>
+                    
+                    <span class="meta">Posted by wang chong on March 17, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="网络协议模型">网络协议模型</h3>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/17/16987400f967c260?w=988&amp;h=405&amp;f=png&amp;s=283281" alt="" />
+网络中的网络协议模型共有两种：一种是网络标准<code class="highlighter-rouge">OSI/ISO</code>七层协议模型，一种是使用广泛<code class="highlighter-rouge">TCP/IP</code>五层协议模型。上图就是<code class="highlighter-rouge">OSI/IOS</code>七层协议模型。其实这两种都差不多，<code class="highlighter-rouge">TCP/IP</code>五层协议模型是把<code class="highlighter-rouge">OSI/IOS</code>七层模型的上三层合并成为了应用层。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/17/169876d96fb79e30?w=1171&amp;h=386&amp;f=png&amp;s=331529" alt="" /></p>
+<h4 id="数据在网络上的传输过程">数据在网络上的传输过程</h4>
+<p>在网络传输上共有两个角色：客户端和服务端。客户端发送请求，服务端响应请求。网络请求在网络协议模型上是一个拆包和封包的过程。</p>
+
+<p><strong>过程如下</strong>：</p>
+
+<ol>
+  <li>数据发送端每经过一层都会封装上这层协议的协议头部向下传输。例如：对于网络请求来说，在应用层封装上HTTP的头部转换成报文，在传输层封装上TCP头部转换成数据包，在网络层封装上IP的头部转化成IP数据报，在数据链路层加上MAC地址封装成帧，然后在物理层转换成比特流进行传输。</li>
+  <li>在物理层传输过程中如果遇到交换机和路由器。遇到交换机把比特流转换成帧，根据交换机所指MAC地址重新封装成帧再向下转换进行传输；遇到路由器拆包到网络层，根据路由策略决定向下传的IP地址再进行向下封装传输。</li>
+  <li>经过万里长征终于到达服务器，会在网络协议模型中把第一步骤一一拆解开，最终拿到数据。响应过程中还是这么一套过程。</li>
+</ol>
+
+<h4 id="数据通信的三种基本方式">数据通信的三种基本方式</h4>
+<p>写到这心里一凉，慌的拿起我的计算机网络书看了看….</p>
+<h5 id="单向通信">单向通信</h5>
+<p>单向通信又称单工通信，即只能有一个方向的通信而没有反方向的交互。比如：无线电广播、电视广播这种。</p>
+<h5 id="双向交替通信">双向交替通信</h5>
+<p>双向交替通信又称半双工通信，即通信的双方都可以发送信息，但不能同时发送(当然也不能同时接收)。这种通信方式是一方发送另一方只能接受，等发送的一方不发了，接收的一方才可以发送。比如：对讲机等。</p>
+<h5 id="双向同时通信">双向同时通信</h5>
+<p>双向同时通信又称全双工通信，即通信的双方都可以同时发送和接受信息。显然，双向通信的传输效率最高。TCP就是全双工通信。</p>
+
+<p>说了这么多(其实也不多)，主要还是要聊聊传输层TCP协议。</p>
+<h3 id="tcp">TCP</h3>
+<h4 id="tcp协议的特点">TCP协议的特点</h4>
+<ol>
+  <li>TCP是面向连接的传输层协议</li>
+  <li>每一条TCP协议只能有两个端口</li>
+  <li>TCP提供数据的可靠交付服务</li>
+  <li>TCP是全双工通信</li>
+  <li>面向字节流
+    <h4 id="tcp头部">TCP头部</h4>
+    <p>TCP头部共有20字节的数据，如下图：</p>
+  </li>
+</ol>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/17/169876ded460a1d0?w=1152&amp;h=470&amp;f=png&amp;s=244261" alt="" /></p>
+
+<ul>
+  <li>0-4：我们都知道TCP协议是保证端到端可靠传输，首先是4个字节的目的端口和源端口</li>
+  <li>4-8：Sequence Number （发包的顺序号）</li>
+  <li>8-12：Acknowledgment Number （应答号,不同的应答号代表者不同的指令，标记此次动作）</li>
+  <li>12-16：标记位，偏移量，时间窗口等等</li>
+  <li>16-20：Checksum(校验码)、Urgent Pointer(偏移指针)</li>
+  <li>TCP Options TCP内置的命令（FIN,SYN就在这里）。</li>
+  <li>上层数据</li>
+</ul>
+
+<h4 id="socket套接字">socket套接字</h4>
+<p>上面说到TCP的特点的时候说道每一条TCP只能有两个端口，这端口不是别的，就是套接字端口。</p>
+
+<p>套接字接口的格式：</p>
+<blockquote>
+  <p>socket = {IP地址 : 端口号}</p>
+</blockquote>
+
+<h4 id="三次握手四次挥手">三次握手、四次挥手</h4>
+<p><strong>为什么三次握手、四次挥手？</strong></p>
+
+<p>TCP保证的是应用程序之间端到端的可靠传输。要想可靠就必须要有这个机制。</p>
+<h5 id="三次握手">三次握手</h5>
+<p>先来张好玩的图
+<img src="https://user-gold-cdn.xitu.io/2019/3/17/1698786507481463?w=547&amp;h=300&amp;f=png&amp;s=139407" alt="" />
+三次握手总结如下：</p>
+<ol>
+  <li>客户端对服务端说：Hi，你能收到我发的信息吗？</li>
+  <li>服务器对客户端说：我能收到，你能收到我发的吗？</li>
+  <li>客户端对服务器说：我也能收到。</li>
+</ol>
+
+<p>是不是非常好理解，再来个详细。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/17/1698790c9378e59d?w=726&amp;h=503&amp;f=png&amp;s=120248" alt="" /></p>
+
+<ul>
+  <li>开始的时候客户端和服务器的TCP连接都处于CLOSE状态。当要连接的时候，客户端为主动打开，服务端为被动打开。</li>
+  <li>一开始服务端服务器进程首先创建传输控制模块TCB(这其中保存了连接重要的信息),然后服务端就处于LISTEN状态。</li>
+  <li>客户端向服务器发送一个SYN=1,seq=n(SYN=1,建立连接的标志，seq为头部的序号位)的数据包，此时客户端进入SYN_SENT状态(连接请求已发送)。</li>
+  <li>服务端接收到客户端发来的请求时，会向客户端发送确认并且请求客户端建立连接(SYN=1、ACK=1、seq=k,ack=n+1)，此时服务端进入SYN_RCVD状态(连接请求收到)</li>
+  <li>客户端接收到服务器的确认后，并且还要向服务器发送确认，(ACK=1,seq=n+1,ack=k+1)，此时TCP建立连接，客户端状态变为EXTABLISHED(已连接状态)</li>
+  <li>服务端接受到客户端的确认之后，同样也进入EXTABLISHED(已连接状态)。三次握手完毕</li>
+</ul>
+
+<h5 id="四次挥手">四次挥手</h5>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/17/16987a5f7c0f9d23?w=508&amp;h=266&amp;f=png&amp;s=87796" alt="" />
+在此次聊天过程中，突然双方起了争执。</p>
+
+<p>四次挥手总结如下：</p>
+
+<ol>
+  <li>客户端对服务端说：我不想听你说话了，不和你聊了(此时客户端已经把手机扔一边了)。</li>
+  <li>服务端对客户端说：你不想听，我也要说(服务端直男癌犯了，服务端说啥客户端都看不到)。</li>
+  <li>服务端对客户端说：我也不想和你说话了，冷战吧。</li>
+  <li>客户端对服务端说：好，冷战就冷战，然后双方删了微信。</li>
+</ol>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/17/1698794dbdd752c8?w=996&amp;h=498&amp;f=png&amp;s=33339" alt="" /></p>
+
+<ul>
+  <li>开始处于数据传输过程中，双方状态为ESTABLISHED。</li>
+  <li>首先客户端向服务端发送FIN=1，seq=x(FIN=1是断开连接的标志)的数据包，进入FIN_WAIT1状态(终止等待1)。</li>
+  <li>服务端接受到客户端的请求，因为服务端这边还要收场，所以先应答客户端，进入CLOSE_WAIT状态(关闭等待)。此时TCP通信就进入到了半关闭状态。</li>
+  <li>客户端接收到服务端返回的确定进入FIN_WAIT2状态(终止等待2).</li>
+  <li>服务端处理好自己的事情之后，向客户端发送一个FIN=1的包，进入LAST_ACK(最后确认)状态。</li>
+  <li>客户端接收到服务端发送的关闭连接的包，并返回个服务端确认。进入TIME_WAIT(时间等待)状态，此时TCP连接还没有释放点，必须要经过时间等待计数器设置的时间之后(2MSL),才会进入CLOSED(关闭)状态。</li>
+  <li>服务端接受到客户端的确认之后，进入CLOSED(关闭)状态。</li>
+  <li>客户端时间等待计数器结束之后进入CLOSED(关闭)状态。TCP连接释放。</li>
+</ul>
+
+<p>Over！</p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/03/16/dns-cdn/" data-toggle="tooltip" data-placement="top" title="DNS域名解析原理及CDN(内容网络分发)">前一篇<br>
+                        <span>DNS域名解析原理及CDN(内容网络分发)</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/03/17/chrome-debug/" data-toggle="tooltip" data-placement="top" title="前端开发高级调试技巧">后一篇<br>
+                        <span>前端开发高级调试技巧</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

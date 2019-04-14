@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Node架构与优化入门篇 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/02/node-profile/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#NodeJS" title="NodeJS">NodeJS</a>
+                        
+                    </div>
+                    <h1>Node架构与优化入门篇</h1>
+                    
+                    
+                    <h2 class="subheading">了解一下NodeJS的架构</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 2, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="简单了解前端项目架构的四个方向">简单了解前端项目架构的四个方向</h3>
+
+<h4 id="spasingle-page-application">SPA(single page application)</h4>
+<p>SPA的架构模式是最简单的，通过借助各种各样的脚手架来完成(比如：vue-cl、React-app、最传统的HTML+CSS+JS等)。这种架构模式属于CSR(Client Side Render:客户端渲染)的方式。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/2/168ac9398ba78e66?w=649&amp;h=348&amp;f=png&amp;s=24448" alt="" />
+如图所示：SPA架构模式通过各种脚手架来完成项目构建，最终打包成dist项目包，如果项目存在跨域，通过nginx反向代理服务器来解决。当然也有优点也有缺点。</p>
+
+<p><strong>优点</strong></p>
+
+<p>简单，借助各种各样的脚手架就可以完成(例如：vue-cli、React-App、HTML+CSS+JS)，项目打包成dist就可以调用后端API，出现跨域的问题也同样可以搭建一层nginx，一方放后端，一方放前端就可以很好的解决跨域问题。</p>
+
+<p><strong>缺点</strong></p>
+
+<p>如果前端项目一旦做成路由，前端的路由都是假路由，不能控制更好的API，不能做SSR，在性能优化方面的指标都控制不了。</p>
+
+<h4 id="基于bff的架构模式-node--spa">基于BFF的架构模式 Node + SPA</h4>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/2/168ac9e98dade719?w=640&amp;h=355&amp;f=png&amp;s=26386" alt="" />
+Node + SPA模式中，SPA还是正常的导出dist项目包，为了减少跨域，中间加了一层Node配合，结合起来发布出去。Node是没有路由的，NodeJS只是帮助渲染index.html。因为前端是有假路由的，需要使用这样的一个插件(connect-history-api-fallback)，把所有的前端的路由都转回到前端的index.html中，最后使用Node和Java进行通信,解决了跨域的问题。这种方式是Node + CSR的模式。</p>
+
+<h4 id="mpamulti-page-application">MPA(multi page application)</h4>
+<p>MPA是一种多页面应用，通过Node直出渲染页面，也就是所谓的SSR(Server Side Rebder:服务端渲染)。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/2/168aca20d1b0a106?w=597&amp;h=317&amp;f=png&amp;s=16373" alt="" />
+这种单独的使用Node，用Node去渲染模板引擎(swig)，实现SSR。Node和后端交互也良好的解决跨域的问题。</p>
+
+<h4 id="同构化应用">同构化应用</h4>
+<p>同构是指同开大一个可以泡在不同平台上的程序。例如开发一段 js 代码可以同时被基于 node.js 开发的 web server 和浏览器使用。同构化可以参考这篇文章，因为自己也不懂这个东西<a href="https://user-gold-cdn.xitu.io/2019/2/2/168aca69fce24e7e">聊一聊前端同构</a>。</p>
+
+<h3 id="node前端存在的意义">Node前端存在的意义</h3>
+<p>有很多人都说Node是玩具，很多人玩不转这个东西。NodeJS为我们前端到底带来了什么？</p>
+<ol>
+  <li>有了NodeJS加入可以让我们为项目的性能指标负责。</li>
+  <li>后端，比如说Java等，它们所做的接口是围绕这整个大系统的。后端吐出的json数据，有可能我们前端只是用到了一小部分，有了NodeJS可以做一层中间层，削减Java的API，提供我们前端需要的东西。</li>
+  <li>有了NodeJS可以让我们前端更好的做到前后端分离。</li>
+</ol>
+
+<h3 id="nodejs异步io的原理浅析及优化方案">NodeJS异步IO的原理浅析及优化方案</h3>
+
+<h4 id="对异步io的理解">对异步IO的理解</h4>
+
+<h5 id="前端通过异步io可以消除ui的阻塞">前端通过异步IO可以消除UI的阻塞</h5>
+<p>我们都知道JavaScript是单线程的，如果当请求是同步的话，后面所有的任务需要等待这个同步任务执行完毕才可以进行，那么大大的浪费了时间。如果是异步的话，当执行到异步函数的时候，这个函数会先把函数的执行权交给外界，让外界继续执行其他任务，等到请求任务完成之后，外界再返回执行权。执行结果。</p>
+
+<h6 id="异步与同步的差异">异步与同步的差异</h6>
+<p>假如请求资源A的事件为M，请求资源B的事件为N，那么同步的请求耗时就是M + N；如果使用异步方法的话请求耗时就是Max(M,N)。让随着业务的增加，引入分布式系统，请求事件会线性的增加。同步和异步的差异就会更加的明显。</p>
+<ol>
+  <li>同步：M + N + N1 + N2 + N3…..</li>
+  <li>异步：Max(M,N,N1,N2,N3);</li>
+</ol>
+
+<h5 id="io是昂贵的分布式io是更昂贵的">I/O是昂贵的，分布式I/O是更昂贵的</h5>
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/2/168acb820653c34d?w=532&amp;h=127&amp;f=png&amp;s=17061" alt="" />
+这是关于本机电脑的一些知识。首先什么是CPU时钟周期：1/(cpu主频) 所运算出的值。</p>
+
+<p>在IO操作过程中，I是input(输入)、O是output(输出)。对于输入输出就是CPU对内存的访问。
+从上面图我们可以看到从上到下所花费的CPU时钟周期越来越大。懂得计算机原理的话应该知道，从下到上是CPU访问越来越块，性能越来越好，当然也越来越贵。这就是I/O昂贵的原因。</p>
+
+<p>为什么说分布式IO是更加昂贵的呢? 因为分布式系统一般都在远程服务器上，在本机上访问必须要通过网络(CPU访问最慢)，到达远程服务器,然后在远程服务器上还需要对远程服务器的内存进行IO操作。</p>
+
+<blockquote>
+  <p>关于上面这个问题，在一篇学术论文上有了这个定律：并不是说都是同步的好，也并不都是异步的好，还是按照系统任务的比例来的。</p>
+</blockquote>
+
+<h4 id="node对异步io的实现">Node对异步IO的实现</h4>
+<p>NodeJS的事件循环和浏览器中的是不一样的，NodeJS的事件循环是LIBUV来管理的。Node是单线程的，LIBUV辅助NodeJS进行事件的轮询。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/2/168acc57f440c852?w=721&amp;h=270&amp;f=png&amp;s=161948" alt="" />
+应用程序首先通过V8，然后NOdeJSAPI绑定底层的操作系统，进入LIBUV的事件队列，进入Event Loop进行事件轮询，通过轮询进入worker threads 执行异步操作。执行完操作回到Event Loop进行轮询，通过轮询回到异步队列，通过操作系统和V8再返回给应用。</p>
+
+<h4 id="函数式编程在node中的应用">函数式编程在Node中的应用</h4>
+<ol>
+  <li>
+    <p>高阶函数：可以将函数作为输入或者返回值，形成一种后续传递风格的程序将函数业务重点从返回值传递到函数中。
+     在node 中的应用，例如中间件，注册事件等等。</p>
+  </li>
+  <li>
+    <p>偏函数：指定部分参数产生一个新的定制函数的形式就是偏函数。Node中异步编程非常常用，我们通过哨兵变量会很容易造成业务的轮换。 underscode、after变量等。
+         不用哨兵变量了，使用偏函数闭包保存变量</p>
+  </li>
+</ol>
+
+<h3 id="服务器集群管理与node集群的应用">服务器集群管理与Node集群的应用</h3>
+
+<h4 id="预备上线">预备上线</h4>
+<ol>
+  <li>前端工程化的搭载动态文件的MAP分析压缩打包合并至CDN</li>
+  <li>单测、压测 性能分析工具发现Bug</li>
+  <li>编写nginx-conf实现均衡和反向代理</li>
+  <li>PM2启动应用程序小流量灰度上线，修复BUG</li>
+</ol>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/01/robots/" data-toggle="tooltip" data-placement="top" title="node爬虫实战">前一篇<br>
+                        <span>node爬虫实战</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/05/es6-use/" data-toggle="tooltip" data-placement="top" title="浏览器支持ES6的最优解决方案">后一篇<br>
+                        <span>浏览器支持ES6的最优解决方案</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Vue基础-样式转换 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/03/31/vue-style/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1554026785443&di=02cb27b4261a056c17ecca6c27e1c433&imgtype=0&src=http%3A%2F%2Faliyunzixunbucket.oss-cn-beijing.aliyuncs.com%2Fjpg%2F1c7a3a847672e9bc5cc2605b9a39938b.jpg%3Fx-oss-process%3Dimage%2Fresize%2Cp_100%2Fauto-orient%2C1%2Fquality%2Cq_90%2Fformat%2Cjpg%2Fwatermark%2Cimage_eXVuY2VzaGk%3D%2Ct_100')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#Vue" title="Vue">Vue</a>
+                        
+                    </div>
+                    <h1>Vue基础-样式转换</h1>
+                    
+                    
+                    <h2 class="subheading">Vue样式转换相关：style转换与class转换</h2>
+                    
+                    <span class="meta">Posted by wang chong on March 31, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="样式转换">样式转换</h3>
+<p>前端如果不能交互改变<code class="highlighter-rouge">css样式</code>的话，那么连咸鱼都不如。</p>
+
+<p>vue改变样式有两种方式：一种是通过内联style改变；一种是通过class改变。</p>
+<h4 id="内联style改变">内联style改变</h4>
+<p>我们都知道<code class="highlighter-rouge">v-bind</code>可以为DOM元素绑定属性，既然可以绑定属性，那么就可以绑定<code class="highlighter-rouge">style</code>属性，通过style来改变样式。</p>
+
+<p>当DOM元素中同时存在style和<code class="highlighter-rouge">v-bind:style</code>的时候，vue会自动的将两个样式进行一个融合，只显示一个。</p>
+
+<p><code class="highlighter-rouge">v-bind:style</code>的值可以书写多个style。例如下面这个就是书写了两个。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">style = </span><span class="s">"height:100px; width : 100px"</span>
+        <span class="na">v-bind:style = </span><span class="s">"[style1,style2]"</span>
+    <span class="nt">&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;button</span> <span class="err">@</span><span class="na">click = </span><span class="s">"change"</span><span class="nt">&gt;</span>change<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+    <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+        <span class="na">el</span> <span class="p">:</span> <span class="s2">"#app"</span><span class="p">,</span>
+        <span class="na">data</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="na">color</span> <span class="p">:</span> <span class="s2">"red"</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="c1">// 使用计算属性来监听color的变化来依赖绑定</span>
+        <span class="na">computed</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="nx">style1</span><span class="p">(){</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="na">backgroundColor</span> <span class="p">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">color</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="nx">style2</span><span class="p">(){</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s1">'border-radius'</span> <span class="p">:</span> <span class="s2">"20px"</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="na">methods</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="nx">change</span><span class="p">(){</span>
+                <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">color</span> <span class="o">==</span> <span class="s2">"yellow"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="k">this</span><span class="p">.</span><span class="nx">color</span> <span class="o">=</span> <span class="s2">"red"</span><span class="p">;</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                    <span class="k">this</span><span class="p">.</span><span class="nx">color</span> <span class="o">=</span> <span class="s2">"yellow"</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+<h4 id="class改变">class改变</h4>
+<p>因为<code class="highlighter-rouge">style</code>中样式的优先级太高，有时候并不建议把样式直接写在<code class="highlighter-rouge">style</code>里面，写在<code class="highlighter-rouge">class</code>里面更可控。</p>
+
+<p>使用<code class="highlighter-rouge">v-bind:class</code>绑定class。</p>
+
+<p>首先定义一些class：</p>
+<div class="language-css highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">.shape</span> <span class="p">{</span>
+    <span class="nl">height</span> <span class="p">:</span> <span class="m">150px</span><span class="p">;</span>
+    <span class="nl">width</span> <span class="p">:</span><span class="m">150px</span><span class="p">;</span>
+    <span class="nl">float</span> <span class="p">:</span><span class="nb">left</span> <span class="p">;</span>
+    <span class="nl">margin</span><span class="p">:</span><span class="m">10px</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.circle</span> <span class="p">{</span>
+    <span class="nl">background-color</span><span class="p">:</span><span class="no">red</span><span class="p">;</span>
+    <span class="nl">border-radius</span><span class="p">:</span><span class="m">50%</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.square</span> <span class="p">{</span>
+    <span class="nl">background-color</span><span class="p">:</span><span class="no">blue</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.triangele</span> <span class="p">{</span>
+    <span class="nl">width</span> <span class="p">:</span><span class="m">0px</span><span class="p">;</span>
+    <span class="nl">height</span> <span class="p">:</span> <span class="m">0px</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.up</span> <span class="p">{</span>
+    <span class="nl">border-left</span><span class="p">:</span> <span class="m">100px</span> <span class="nb">solid</span> <span class="nb">transparent</span><span class="p">;</span>
+    <span class="nl">border-right</span><span class="p">:</span> <span class="m">100px</span> <span class="nb">solid</span> <span class="nb">transparent</span><span class="p">;</span>
+    <span class="nl">border-bottom</span><span class="p">:</span> <span class="m">100px</span> <span class="nb">solid</span> <span class="no">green</span><span class="p">;</span>
+
+<span class="p">}</span>
+<span class="nc">.down</span> <span class="p">{</span>
+    <span class="nl">border-left</span><span class="p">:</span> <span class="m">100px</span> <span class="nb">solid</span> <span class="nb">transparent</span><span class="p">;</span>
+    <span class="nl">border-right</span><span class="p">:</span> <span class="m">100px</span> <span class="nb">solid</span> <span class="nb">transparent</span><span class="p">;</span>
+    <span class="nl">border-top</span><span class="p">:</span> <span class="m">100px</span> <span class="nb">solid</span> <span class="no">yellow</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.animation</span> <span class="p">{</span>
+    <span class="nl">animation</span> <span class="p">:</span> <span class="n">strentch</span> <span class="m">1.0s</span> <span class="n">ease-out</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">@keyframes</span> <span class="n">strentch</span> <span class="p">{</span>
+    <span class="nt">0</span><span class="o">%</span><span class="p">{</span>
+        <span class="nl">transform</span> <span class="p">:</span> <span class="n">scale</span><span class="p">(</span><span class="m">0.3</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nt">50</span><span class="o">%</span> <span class="p">{</span>
+        <span class="nl">transform</span> <span class="p">:</span><span class="n">scale</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nt">100</span><span class="o">%</span> <span class="p">{</span>
+        <span class="nl">transform</span> <span class="p">:</span> <span class="n">scale</span><span class="p">(</span><span class="m">0.3</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h5 id="隐藏与显示类">隐藏与显示类</h5>
+
+<p>v-bind:class 中以对象的形式，类名为属性名，当属性值为true的时候显示，当属性值为false的时候隐藏。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span><span class="nt">&gt;</span>
+    <span class="c">&lt;!-- 隐藏或显示类 --&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-for = </span><span class="s">"shape in shaps"</span> <span class="na">class=</span><span class="s">"shape"</span> <span class="na">v-bind:class = </span><span class="s">"{circle : shape.isRound,square :! shape.isRound }"</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+    <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+        <span class="na">el</span> <span class="p">:</span> <span class="s2">"#app"</span><span class="p">,</span>
+        <span class="na">data</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="na">shaps</span> <span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="na">isRound</span> <span class="p">:</span> <span class="kc">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">isRound</span> <span class="p">:</span> <span class="kc">false</span><span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<h5 id="转换类名">转换类名</h5>
+
+<p>v-bind:class 中以数组的形式，把数据中的类名添加进来。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span><span class="nt">&gt;</span>
+    <span class="c">&lt;!-- 转换类名 --&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-for=</span><span class="s">"item in shapsClass"</span> <span class="na">class=</span><span class="s">"shape"</span> <span class="na">v-bind:class=</span><span class="s">"[item.name,item.dirction ? item.dirction : '']"</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+    <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+        <span class="na">el</span> <span class="p">:</span> <span class="s2">"#app"</span><span class="p">,</span>
+        <span class="na">data</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="na">shapsClass</span> <span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"circle"</span><span class="p">,</span><span class="na">animation</span> <span class="p">:</span> <span class="kc">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"square"</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"triangele"</span><span class="p">,</span><span class="na">dirction</span> <span class="p">:</span> <span class="s2">"up"</span> <span class="p">,</span><span class="na">animation</span> <span class="p">:</span> <span class="kc">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"triangele"</span><span class="p">,</span><span class="na">dirction</span> <span class="p">:</span> <span class="s2">"down"</span><span class="p">}</span>
+
+            <span class="p">]</span>
+        <span class="p">}</span>
+
+    <span class="p">})</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<h5 id="两种方式结合">两种方式结合</h5>
+
+<p>同时两种方式还可以结合使用，在第二种转换类名的方式里中数组中的值放入对象，就想让以第一种方法嵌套在第二种方法中.</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-for=</span><span class="s">"item in shapsClass"</span> <span class="na">class=</span><span class="s">"shape"</span> <span class="na">v-bind:class=</span><span class="s">"[item.name,item.dirction ? item.dirction : '', {animation : item.animation}]"</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+    <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+        <span class="na">el</span> <span class="p">:</span> <span class="s2">"#app"</span><span class="p">,</span>
+        <span class="na">data</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="na">shapsClass</span> <span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"circle"</span><span class="p">,</span><span class="na">animation</span> <span class="p">:</span> <span class="kc">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"square"</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"triangele"</span><span class="p">,</span><span class="na">dirction</span> <span class="p">:</span> <span class="s2">"up"</span> <span class="p">,</span><span class="na">animation</span> <span class="p">:</span> <span class="kc">true</span><span class="p">},</span>
+                <span class="p">{</span><span class="na">name</span> <span class="p">:</span> <span class="s2">"triangele"</span><span class="p">,</span><span class="na">dirction</span> <span class="p">:</span> <span class="s2">"down"</span><span class="p">}</span>
+
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/03/31/vue-filters/" data-toggle="tooltip" data-placement="top" title="Vue初探-filter过滤器">前一篇<br>
+                        <span>Vue初探-filter过滤器</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/03/31/vue-component-asyncdata/" data-toggle="tooltip" data-placement="top" title="Vue组件与异步获取数据的方式">后一篇<br>
+                        <span>Vue组件与异步获取数据的方式</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

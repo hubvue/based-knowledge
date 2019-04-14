@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>浏览器支持ES6的最优解决方案 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/05/es6-use/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#ES6" title="ES6">ES6</a>
+                        
+                    </div>
+                    <h1>浏览器支持ES6的最优解决方案</h1>
+                    
+                    
+                    <h2 class="subheading">如何让浏览器支持ES6的语法的解决方案</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 5, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="es6系列的兴起">ES6系列的兴起</h3>
+<p>可以说ECMAScript6是JavaScript历史上最大的一次变革，ES6的到来为JavaScrip带来了面向对象的特性，带来了许多新的语法，也让这门解释性语言有了它该有的样子。总的来说，带来了无限好处。带来好处的同时也让我们在用的时候有了担忧，用户的角度是广阔的，开发者无法提前预知用户用的浏览器到底支持不支持ES6的语法，因此在开发过程中就有个阻碍。babel的兴起让ES6的开发者大显身手，但是它是把ES6的语法编译成ES5的语法，也就是浏览器支持的语法。我们要知道在ES6兴起的时候，V8引擎是对ES6语法有了极大的优化的，滥用了babel不就也放弃了这种优化吗？这使得ES6只让开发者更加便于开发，用户的角度上并没有体现出任何价值，而且babel编译出的庞大的ES5文件，在用户方法还起到了负面作用。那这到底怎么办呢？接下来主角登场。</p>
+
+<h3 id="最优的解决方案">最优的解决方案</h3>
+<p>emmmm…主角登场前，电闪雷鸣，乌云密布。当我们在开发过程中的时候，JavaScript采用两种文件的方式来加载。一种的ES6代码写的文件，一种的babel编译成ES5的文件。在浏览器中执行的时候，判断浏览器是否支持ES6，如果支持就加载ES6的文件，如果不支持就加载ES5的文件，这样就良好的解决问题。那么用什么判断呢？主角登场。。。。</p>
+
+<h3 id="typemodule">type=’module’</h3>
+<p>在script标签里面我们都知道有type属性指定文件的类型(type=’text/script’)，这个属性还有一个值那就是module和nomodule。</p>
+<ol>
+  <li>module：表示当浏览器支持ES6的时候执行的JavaScript代码</li>
+  <li>nomodule：表示当浏览器不支持ES6的时候执行的JavaScript代码。</li>
+</ol>
+
+<p>我们在项目中创建test.js文件来写这样一段代码：当我们在写好ES6的代码的时候不要直接调用，<a href="http://es6.ruanyifeng.com/#docs/module">阮大佬的import</a>，用ES6 import export的形式导出</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">Test</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">'zhangsan'</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nx">action</span><span class="p">(){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span> <span class="k">default</span> <span class="nx">Test</span><span class="p">;</span>
+</code></pre></div></div>
+<p>在html中：使用ES6的动态import的形式加载进来。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">'module'</span><span class="nt">&gt;</span>
+    <span class="k">import</span><span class="p">(</span><span class="s1">'test.js'</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">_</span><span class="o">=&gt;</span><span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'我支持modul'</span><span class="p">);</span>
+        <span class="k">new</span> <span class="nx">_</span><span class="p">.</span><span class="k">default</span><span class="p">().</span><span class="nx">action</span><span class="p">();</span>
+    <span class="p">})</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+<p>打开Chrom浏览器会发现有这样的一句输出</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bc5e56a13b4c5?w=396&amp;h=66&amp;f=png&amp;s=3645" alt="" /></p>
+
+<p>type=‘nomodule’的情况下我们执行babel编译</p>
+
+<h3 id="使用babel编译">使用babel编译</h3>
+
+<p>安装babel</p>
+<blockquote>
+  <p>npm install –save-dev @babel/core @babel/cli @babel/preset-env</p>
+</blockquote>
+
+<p>在项目根目录创建.babelrc文件,内容如下</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "presets" : ["@babel/preset-env"]
+}
+</code></pre></div></div>
+<p>使用命令进行编译</p>
+<blockquote>
+  <p>babel test.js –out-file test-bundle.js</p>
+</blockquote>
+
+<p>test-bundle.js文件内容如下：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"use strict"</span><span class="p">;</span>
+<span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">exports</span><span class="p">,</span> <span class="s2">"__esModule"</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">value</span><span class="p">:</span> <span class="kc">true</span>
+<span class="p">});</span>
+<span class="nx">exports</span><span class="p">.</span><span class="k">default</span> <span class="o">=</span> <span class="k">void</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="kd">function</span> <span class="nx">_classCallCheck</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">Constructor</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">instance</span> <span class="k">instanceof</span> <span class="nx">Constructor</span><span class="p">))</span> <span class="p">{</span> <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span><span class="p">(</span><span class="s2">"Cannot call a class as a function"</span><span class="p">);</span> <span class="p">}</span> <span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">props</span><span class="p">)</span> <span class="p">{</span> <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">props</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span> <span class="kd">var</span> <span class="nx">descriptor</span> <span class="o">=</span> <span class="nx">props</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">=</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">||</span> <span class="kc">false</span><span class="p">;</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">configurable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> <span class="k">if</span> <span class="p">(</span><span class="s2">"value"</span> <span class="k">in</span> <span class="nx">descriptor</span><span class="p">)</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">writable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">key</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">);</span> <span class="p">}</span> <span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="nx">protoProps</span><span class="p">)</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">);</span> <span class="k">if</span> <span class="p">(</span><span class="nx">staticProps</span><span class="p">)</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">);</span> <span class="k">return</span> <span class="nx">Constructor</span><span class="p">;</span> <span class="p">}</span>
+<span class="kd">var</span> <span class="nx">Test</span> <span class="o">=</span>
+<span class="cm">/*#__PURE__*/</span>
+<span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="kd">function</span> <span class="nx">Test</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">_classCallCheck</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">Test</span><span class="p">);</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">'zhangsan'</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Test</span><span class="p">,</span> <span class="p">[{</span>
+    <span class="na">key</span><span class="p">:</span> <span class="s2">"action"</span><span class="p">,</span>
+    <span class="na">value</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">action</span><span class="p">()</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}]);</span>
+
+  <span class="k">return</span> <span class="nx">Test</span><span class="p">;</span>
+<span class="p">}();</span>
+
+<span class="kd">var</span> <span class="nx">_default</span> <span class="o">=</span> <span class="nx">Test</span><span class="p">;</span>
+<span class="nx">exports</span><span class="p">.</span><span class="k">default</span> <span class="o">=</span> <span class="nx">_default</span><span class="p">;</span>
+
+</code></pre></div></div>
+<p>我们发现第二行使用的是模块加载export，require之类的东西，但是我们浏览器中并没有这些东西，于是我们采用一个模块加载器来加载这个东西。</p>
+
+<h3 id="systemjs">System.js</h3>
+<p>System.js是一个万能模块加载器，任何使用模块加载的都可以使用它来进行加载。用法也非常简单。<a href="https://github.com/systemjs/systemjs">Systemjs的github</a>。我们采用script标签的形式把这个东西加载进来。并用官网的方式加载test.js</p>
+
+<p>需要注意的是：Systemjs必须指定nomodule，和ES5文件保持一致才可以。由于我们用于测试和最新的Chrome浏览器肯定是支持module的，所以先把nomodule改成module来用于测试</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c">&lt;!--&lt;script type="nomodule" src="https://cdn.staticfile.org/systemjs/3.0.0/system.js"&gt;&lt;/script&gt;
+ &lt;script type="nomodule"&gt;
+    System.import('test.js').then(_=&gt;{
+        new _.default().action();
+    })
+ &lt;/script&gt;--&gt;</span>
+ 
+ <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"module"</span> <span class="na">src=</span><span class="s">"https://cdn.staticfile.org/systemjs/3.0.0/system.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+ <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">"module"</span><span class="nt">&gt;</span>
+    <span class="nx">System</span><span class="p">.</span><span class="k">import</span><span class="p">(</span><span class="s1">'test.js'</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">_</span><span class="o">=&gt;</span><span class="p">{</span>
+        <span class="k">new</span> <span class="nx">_</span><span class="p">.</span><span class="k">default</span><span class="p">().</span><span class="nx">action</span><span class="p">();</span>
+    <span class="p">})</span>
+ <span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+<p>打开浏览器见证奇迹</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bc6d99ad18915?w=397&amp;h=116&amp;f=png&amp;s=12664" alt="" /></p>
+
+<p>哎呀报错了，很懵逼，很焦虑，为什么会报错呢？ 因为babel编译的es5的语法采用的模块加载器是export加载，并没有使用SystemJS的加载方式。可以通过babel插件来把babel的模块加载方式改成SystemJS的加载方式。</p>
+
+<h3 id="最后的希望">最后的希望</h3>
+<p>我们在npm上找到这个插件@babel/plugin-transform-modules-systemjs并安装</p>
+<blockquote>
+  <p>npm install @babel/plugin-transform-modules-systemjs –sav-dev</p>
+</blockquote>
+
+<p>在.babelrc里面添加上plugins</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "presets" : ["@babel/preset-env"],
+    "plugins" : ["@babel/plugin-transform-modules-systemjs"]
+}
+</code></pre></div></div>
+<p>此时使用上面babel语法进行编译，文件内容如下</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"use strict"</span><span class="p">;</span>
+<span class="nx">System</span><span class="p">.</span><span class="nx">register</span><span class="p">([],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">_export</span><span class="p">,</span> <span class="nx">_context</span><span class="p">)</span> <span class="p">{</span>
+  <span class="s2">"use strict"</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">Test</span><span class="p">;</span>
+
+  <span class="kd">function</span> <span class="nx">_classCallCheck</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">Constructor</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">instance</span> <span class="k">instanceof</span> <span class="nx">Constructor</span><span class="p">))</span> <span class="p">{</span> <span class="k">throw</span> <span class="k">new</span> <span class="nx">TypeError</span><span class="p">(</span><span class="s2">"Cannot call a class as a function"</span><span class="p">);</span> <span class="p">}</span> <span class="p">}</span>
+
+  <span class="kd">function</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">props</span><span class="p">)</span> <span class="p">{</span> <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">props</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span> <span class="kd">var</span> <span class="nx">descriptor</span> <span class="o">=</span> <span class="nx">props</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">=</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">enumerable</span> <span class="o">||</span> <span class="kc">false</span><span class="p">;</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">configurable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> <span class="k">if</span> <span class="p">(</span><span class="s2">"value"</span> <span class="k">in</span> <span class="nx">descriptor</span><span class="p">)</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">writable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">.</span><span class="nx">key</span><span class="p">,</span> <span class="nx">descriptor</span><span class="p">);</span> <span class="p">}</span> <span class="p">}</span>
+
+  <span class="kd">function</span> <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="nx">protoProps</span><span class="p">)</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="nx">protoProps</span><span class="p">);</span> <span class="k">if</span> <span class="p">(</span><span class="nx">staticProps</span><span class="p">)</span> <span class="nx">_defineProperties</span><span class="p">(</span><span class="nx">Constructor</span><span class="p">,</span> <span class="nx">staticProps</span><span class="p">);</span> <span class="k">return</span> <span class="nx">Constructor</span><span class="p">;</span> <span class="p">}</span>
+
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="na">setters</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="na">execute</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="nx">Test</span> <span class="o">=</span>
+      <span class="cm">/*#__PURE__*/</span>
+      <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">function</span> <span class="nx">Test</span><span class="p">()</span> <span class="p">{</span>
+          <span class="nx">_classCallCheck</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">Test</span><span class="p">);</span>
+
+          <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">'zhangsan'</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nx">_createClass</span><span class="p">(</span><span class="nx">Test</span><span class="p">,</span> <span class="p">[{</span>
+          <span class="na">key</span><span class="p">:</span> <span class="s2">"action"</span><span class="p">,</span>
+          <span class="na">value</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">action</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
+          <span class="p">}</span>
+        <span class="p">}]);</span>
+
+        <span class="k">return</span> <span class="nx">Test</span><span class="p">;</span>
+      <span class="p">}();</span>
+
+      <span class="nx">_export</span><span class="p">(</span><span class="s2">"default"</span><span class="p">,</span> <span class="nx">Test</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>第二行我们发现有这样一个东西System.register([], function (_export, _context)，与之前的编译不一样了。此时就是使用SystemJS的模块加载机制。我们打开浏览器。
+<img src="https://user-gold-cdn.xitu.io/2019/2/5/168bc74134c1283c?w=368&amp;h=49&amp;f=png&amp;s=2457" alt="" /></p>
+
+<p>完美。</p>
+
+<p>在使用type=‘module’和和type=‘nomodule’的时候，一定要把SystemJS的type设置成nomodule，与ES5语法统一。</p>
+
+<p>等等还没完。。。</p>
+
+<p>以上的加载操作，都是我们手动进行的，包括babel编译，type属性值的添加。后续使用webpack的话可以实现一键部署。别走开，后续更加精彩。</p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/02/node-profile/" data-toggle="tooltip" data-placement="top" title="Node架构与优化入门篇">前一篇<br>
+                        <span>Node架构与优化入门篇</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/05/pm2/" data-toggle="tooltip" data-placement="top" title="pm2项目部署总结">后一篇<br>
+                        <span>pm2项目部署总结</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

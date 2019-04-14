@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>HTTP缓存策略 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/03/16/http-cache/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#网络" title="网络">网络</a>
+                        
+                    </div>
+                    <h1>HTTP缓存策略</h1>
+                    
+                    
+                    <h2 class="subheading">HTTP浏览器缓存解析及Nginx实战</h2>
+                    
+                    <span class="meta">Posted by wang chong on March 16, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="缓存的定义">缓存的定义</h3>
+<p>缓存就是数据交换的缓冲区（称作Cache），这个概念最初是来自于内存和CPU。当某一硬件要读取数据时，会首先从缓存中查找需要的数据，如果找到了则直接执行，找不到的话则从内存中找。由于缓存的运行速度比内存快得多，故缓存的作用就是帮助硬件更快地运行。</p>
+
+<h3 id="web缓存">Web缓存</h3>
+<p>客户端和服务器之间是通过请求和响应来相互通信的。
+<img src="https://user-gold-cdn.xitu.io/2019/3/16/169864fc32393609?w=1138&amp;h=367&amp;f=png&amp;s=240252" alt="" /></p>
+<blockquote>
+  <p>请求的本质就是从客户端向服务器发起请求，获取服务器资源(图片、文件、数据)返回给客户端。</p>
+</blockquote>
+
+<p>Web缓存就是保存从服务器响应的资源，当发起下一次请求请求同样的资源的时候，不需要再请求客户端，直接从缓存中得到。</p>
+
+<h3 id="缓存类型">缓存类型</h3>
+<p>HTTP缓存分为强缓存和协商缓存，共有四种缓存类型。</p>
+<h4 id="强缓存">强缓存</h4>
+<p>浏览器第一次请求服务器时，服务器会将文件和缓存时间一起返回给客户端，客户端将二者备份至缓存数据库中。再次请求数据的时候，客户端会根据文件的过期时间去判断文件是否过期，如果未过期就从缓存数据库中拿文件，如果过期，则重新从服务器上请求文件。</p>
+<h5 id="cache-control">Cache-Control</h5>
+<p>Cache-Control是优先级最高的强缓存，它有一下值：</p>
+<ol>
+  <li>Cache-Control: no-cache必须先与代理服务器确认是否更改，然后在在决定使用缓存还是请求，类似于协商缓存（304）。可以用于不让浏览器自己缓存，我们自己来控制缓存，让文件更可控。</li>
+  <li>Cache-Control: no-store 才是真正的不缓存数据到本地。</li>
+  <li>Cache-Control: public 可以被所有用户缓存（多用户共享），包括终端和CDN等中间代理服务器。</li>
+  <li>Cache-Control: private 只能被终端浏览器缓存（而且是私有缓存），不允许中继缓存服务器进行缓存</li>
+  <li>Cache-Control: must-revalidate如果缓存内容失效，请求必须发送服务器进行验证。</li>
+  <li>Cache-Control: max-age=s	设置缓存时间，缓存内容在s秒后失效，仅HTTP1.1可用</li>
+</ol>
+
+<blockquote>
+  <p>第一次请求服务器，响应头会返回一个max-age，表示文件的缓存过期时间。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/169865c80c662f9f?w=421&amp;h=71&amp;f=png&amp;s=8840" alt="" /></p>
+
+<blockquote>
+  <p>第二次请求 客户端会校验文件是否过期，如果文件未过期则直接使用本地缓存，返回返状态码200(from memory cache)或200(from disk cache)，如果过期则进行协商缓存。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/169866039701e16b?w=716&amp;h=450&amp;f=png&amp;s=115755" alt="" /></p>
+<h5 id="expires">Expires</h5>
+<p>Expires是http1.0提出的一个表示资源过期时间的header，它描述的是一个绝对时间，由服务器返回。正是因为又服务器返回，而服务器时间和本地时间不同，所以它有时候是不准的。</p>
+
+<blockquote>
+  <p>浏览器第一次请求服务器，响应头里会返回一个Expires的文件过期时间。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/16986634e2882024?w=349&amp;h=29&amp;f=png&amp;s=4095" alt="" /></p>
+
+<blockquote>
+  <p>第二次请求服务器时，客户端使用本地时间和文件的过期时间相比对，如果未过期则直接使用本地缓存返回状态码200(from memory cache)或200(from disk cache)则进行协商缓存。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/16986654f8e71fa4?w=961&amp;h=435&amp;f=png&amp;s=114886" alt="" /></p>
+
+<h4 id="协商缓存">协商缓存</h4>
+<p>浏览器第一次请求服务器的时候，服务器会将缓存标识和资源一起响应给客户端，客户端将二者备份至缓存服务器。再次请求数据时，客户端将备份的缓存标识发给服务器，服务器根据缓存标识决定是从缓存拿数据还是从服务器上请求数据。如果判断成功，返回304状态码，通知客户端从缓存中拿数据；如果判断失败，则再次请求进行缓存。</p>
+<h5 id="etagif-none-match">Etag/If-None-Match</h5>
+<p>Etag规则是通过文件的内容来判断该不该读缓存，服务器把文件读出来，通过某种方式为文件加上标识(一般是通过MD5进行base64加密得出hash值，把这个值设置在相应头里面)，客户端下一次请求通过If-None-Mach带过来，服务器再比对和当前文件内容加密得出的hash值是否相同，如果相同则说明文件内容没有发生变化，可以从缓存中获取，如果不相同则文件发生变化，重新请求。这种是最准确的方式，同样也是最耗时的。</p>
+
+<blockquote>
+  <p>客户端第一次请求服务器，响应头中返回包含文件缓存标识的Etag标签。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/169866cfd0910534?w=293&amp;h=19&amp;f=png&amp;s=3080" alt="" /></p>
+
+<blockquote>
+  <p>客户端第二次请求服务器，请求头包含IF-None-Match,服务器获得缓存标识后，用该标识和文件hash值进行比对。比对成功，则文件未过期，从缓存中拿返回状态码304，比对失败，重新请求文件并缓存，返回状态码200</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/169866f1e0b4c77e?w=1280&amp;h=560&amp;f=png&amp;s=153110" alt="" /></p>
+
+<h5 id="last-modifiedif-modified-since">Last-Modified/If-Modified-Since</h5>
+<p>Last-Modefied规则是通过文件的最后修改时间来判断该不该读缓存，服务器端设置响应头Last-Modified，表示最后修改时间。客户端再次请求服务器的时候通过请求头If-Modified-Since把最后修改时间提交给服务器，服务器判断客户端返回的时间和文件的时候相比对，如果相等则表示未过期，可以从缓存中拿，如果不相等则表示缓存已过期，再次请求并缓存。</p>
+
+<blockquote>
+  <p>第一次请求服务器，响应头中返回Last-Modified 头，表示文件最后修改时间。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/1698673af925523f?w=387&amp;h=26&amp;f=png&amp;s=4617" alt="" /></p>
+
+<blockquote>
+  <p>第二次请求服务器，请求头中返回If-Modified-Since头，把文件最后修改时间返回给服务器，服务器来做决策。</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/169867513d747e3a?w=1280&amp;h=656&amp;f=png&amp;s=210906" alt="" /></p>
+
+<h4 id="什么样的文件可以缓存什么样是文件不可以缓存">什么样的文件可以缓存，什么样是文件不可以缓存？</h4>
+<ol>
+  <li>静态资源可以缓存</li>
+  <li>动态资源不能缓存</li>
+  <li>需要根据cookie拿到信息不能缓存</li>
+  <li>post请求不能缓存</li>
+  <li>HTTP头中没有包含缓存策略标记的不能缓存</li>
+</ol>
+
+<h4 id="缓存策略图">缓存策略图</h4>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/1698676ea9ae27d4?w=591&amp;h=538&amp;f=png&amp;s=48239" alt="" /></p>
+
+<h3 id="nginx服务器缓存实践">Nginx服务器缓存实践</h3>
+<p>在Web缓存中我们一般用，Nginx作为代理服务器做缓存。这样做比较简单一些。</p>
+
+<p>Nginx服务器是默认开启Etag规则的。可以通过一下几项配置浏览器缓存。
+<img src="https://user-gold-cdn.xitu.io/2019/3/16/169867cd6bb49b01?w=586&amp;h=152&amp;f=png&amp;s=50891" alt="" /></p>
+
+<p>结果为</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/16/169867d37bb01c05?w=523&amp;h=263&amp;f=png&amp;s=39806" alt="" /></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/03/15/javascript-this/" data-toggle="tooltip" data-placement="top" title="[读书笔记]探索JavaScript中this机制">前一篇<br>
+                        <span>[读书笔记]探索JavaScript中this机制</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/03/16/dns-cdn/" data-toggle="tooltip" data-placement="top" title="DNS域名解析原理及CDN(内容网络分发)">后一篇<br>
+                        <span>DNS域名解析原理及CDN(内容网络分发)</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

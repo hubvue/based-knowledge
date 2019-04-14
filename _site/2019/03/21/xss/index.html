@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>XSS跨站脚本攻击 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/03/21/xss/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('data:image/jpeg;base64,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3P8A46a5muq+H4B8TqT2hcitaH8WPqYYp/uZ+h6xmkzSZpM17x8qKTTSaKQmgAJppNBpCaAENNpxppNMQ00004000AIaaacabQA00004000ANNIaU0hoAYaaaeaaaAGmmmnGmmgQ00004000ANNNNONNNADTTTTjTTQA00004000AIaaacaaaAGmkNLSGgBtFLRQBMKcKaKcKAJKKaKcKSVhjxSimilFTyMB4rifGDlNVjIPPlj+ZrtRXC+Mf+Q0n/XFf5muXGr90ejlj/fW8jJDpInOPcGq8iBG4IINMoryD6EuttZcEjH1qCVEVQV659ahooAuKVMQBI6etRSxoqZXr9agooAuIy+WoJHT1pAsSc5H51UooAlmkD4A6CnxSrt2scEVXooAthYlO7j86imlDfKvTuahooAswECPkgc1Xb7x+tJRQAUUUUAFFFFABRRRQAV13w6UnxDKf7tsx/8AHlrka7T4brnWLt8dLfGfqw/wrfDfxYnLjXahI9LpKKSvcPmApDQaSmISkpaSgBDTTTjTaAENNNONNNADaQ0ppDQA00004000ANNNNONNNACGmmlNIaAGmmmnGmmgQ00004000ANNNNONNNADTTTTjTTQA00004000AIaaacaaaAG0lLTTQISiiigD//Z')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#web安全" title="web安全">web安全</a>
+                        
+                    </div>
+                    <h1>XSS跨站脚本攻击</h1>
+                    
+                    
+                    <h2 class="subheading"></h2>
+                    
+                    <span class="meta">Posted by wang chong on March 21, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="什么是xss">什么是XSS</h3>
+<p><code class="highlighter-rouge">XSS</code>是跨站脚本攻击，是发生在目标用户浏览器层面上的。当渲染DOM树的过程中发生了再预期内执行的JavaScript代码时，就发生了<code class="highlighter-rouge">XSS</code>攻击</p>
+
+<h3 id="xss的攻击方式">XSS的攻击方式</h3>
+<p><code class="highlighter-rouge">XSS</code>的攻击方式有三种：</p>
+<ol>
+  <li>反射型XSS</li>
+  <li>存储型XSS</li>
+  <li>DOM XSS</li>
+</ol>
+
+<h4 id="反射型xss">反射型XSS</h4>
+<p>反射型XSS也叫非持久型XSS，是指发生请求时，XSS代码出现在请求<code class="highlighter-rouge">URL</code>中，作为参数提交给服务器，服务器解析并响应，响应结果中包含XSS代码，最后浏览器解析并执行。</p>
+
+<blockquote>
+  <p>总结来说就是:XSS代码首先出现在URL中，然后需要服务端解析并响应给客户端，最后需要浏览器解析之后代码才能执行。</p>
+</blockquote>
+
+<p>这种方式常用于获取用户的<code class="highlighter-rouge">Cookie</code>，通过对使用未写入<code class="highlighter-rouge">src</code>的<code class="highlighter-rouge">img</code>标签设定<code class="highlighter-rouge">onerror = ()=&gt;alert(document.cookie)</code>获取到用户的cookie信息。</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">"null"</span> <span class="na">onerror= </span><span class="s">()=</span><span class="nt">&gt;</span> alert(document.cookie) /&gt;
+</code></pre></div></div>
+<h4 id="存储型xss">存储型XSS</h4>
+<p>存储型XSS，也叫做持久型XSS，主要是将XSS代码发送到服务端(无论是数据库、内存还是文件系统)，然后下次请求页面的时候，XSS代码会随着浏览器渲染出来，就不需要手动再次带上XSS代码。</p>
+
+<p>这个典型的例子就是留言板，用户提交一条包含XSS代码的留言到数据库，当目标用户查看留言的时候就会从服务器解析之后加载出来，浏览器发现有可执行的代码，就当做正常的HTML和CSS或者JS进行解析，XSS攻击就产生了。</p>
+
+<h4 id="dom-xss">DOM XSS</h4>
+<p><code class="highlighter-rouge">DOM XSS</code> 不同于反射型和存储型，DOM XSS不需要服务端解析之后相应的直接参与，而是通过客户端的DOM解析，完全是客户端的事情。</p>
+
+<p>简单的说：<code class="highlighter-rouge">DOM XSS</code>是我们开发者自己所造成的。在JavaScript中有个<code class="highlighter-rouge">eval</code>方法，它的作用就是把一串字符串可以当做真正的JavaScript代码来执行。这样就有可能会对我们的代码造成攻击。</p>
+
+<h3 id="xss的危害">XSS的危害</h3>
+<ol>
+  <li>通过<code class="highlighter-rouge">document.cookie</code>可以盗取用户的<code class="highlighter-rouge">cookie</code>。如果是黑客的话，可能还会做一些其他的手段。</li>
+  <li>使用JavaScript或者CSS破话页面正常的结构和样式。黑客可以通过在用户端获取到的用户信息发送到黑客的服务器上。</li>
+  <li>流量劫持(通过询问某段具有<code class="highlighter-rouge">window.location.href</code>定位到其他页面，进行流量劫持)。</li>
+  <li>Dos攻击：利用合理的客户端请求来占用过多的服务端资源，从而使合法用户无法得到服务端响应。</li>
+  <li>利用<code class="highlighter-rouge">iframe</code>、<code class="highlighter-rouge">frame</code>、<code class="highlighter-rouge">XMLHttpRequest</code>或<code class="highlighter-rouge">Flash</code>方式，以被攻击用户的身份执行一些管理动作，或执行一些如：发微博、加好友、发私信等操作。</li>
+  <li>利用可被攻击的域收到其他域信任的特点，以受信任来源的身份请求一些平时不允许的操作，如进行不正当的投票活动等等。</li>
+</ol>
+
+<h3 id="xss防御">XSS防御</h3>
+<p>从上面三种XSS类型可以看出，我们不能讲用户提交的数据原样的存到服务器，需要对用户的输入的数据进行一些处理。</p>
+
+<p>问题如下：</p>
+<ol>
+  <li>
+    <p>没有过滤危险的DOM元素。</p>
+
+    <p>如：执行脚本能<code class="highlighter-rouge">script</code>，具有现实广告及色情图片的<code class="highlighter-rouge">img</code>，具有改变样式的<code class="highlighter-rouge">link</code>、<code class="highlighter-rouge">style</code>，具有内嵌页面的<code class="highlighter-rouge">iframe</code>、<code class="highlighter-rouge">frame</code>等元素节点。</p>
+  </li>
+  <li>没有过滤的属性节点。如：<code class="highlighter-rouge">event</code>、<code class="highlighter-rouge">style</code>、<code class="highlighter-rouge">src</code>、<code class="highlighter-rouge">href</code>等等。</li>
+  <li>没有对<code class="highlighter-rouge">Cookie</code>设置<code class="highlighter-rouge">httpOnly</code>。</li>
+</ol>
+
+<h3 id="解决办法">解决办法</h3>
+<h4 id="对cookie的保护">对Cookie的保护</h4>
+<p>通过在服务端设置<code class="highlighter-rouge">httpOnly</code>,不让客户端使用<code class="highlighter-rouge">document.cookie</code>来读取<code class="highlighter-rouge">cookie</code></p>
+
+<p>设置方式</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">response</span><span class="p">.</span><span class="nx">setHeader</span><span class="p">(</span><span class="s2">"Set-Cookie"</span><span class="p">,</span><span class="s2">"cookiename=value;path=/;Domain=domainvalue;Max-Age=second;HTTPONly"</span><span class="p">);</span>
+</code></pre></div></div>
+<h4 id="对用户输入数据的处理">对用户输入数据的处理</h4>
+<ol>
+  <li>编码：对用户输入的数据进行实体编码。</li>
+  <li>解码：原样显示内容的时候必须解码</li>
+  <li>过滤：对一些敏感的DOM元素进行过滤掉，从而保护安全性。</li>
+</ol>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/03/21/typescript/" data-toggle="tooltip" data-placement="top" title="TypeScript飞行手册">前一篇<br>
+                        <span>TypeScript飞行手册</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/03/23/react-start/" data-toggle="tooltip" data-placement="top" title="React初探及环境搭建">后一篇<br>
+                        <span>React初探及环境搭建</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>React JSX语法学习 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/03/23/react-jsx/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553337506344&di=e4bad495d76574ca77897e2d0e0e6134&imgtype=0&src=http%3A%2F%2Fs1.51cto.com%2Fwyfs02%2FM01%2F88%2F7F%2FwKiom1f55HCSS-DrAACSkyHme8o914.png-wh_651x-s_1436211364.png')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#React" title="React">React</a>
+                        
+                    </div>
+                    <h1>React JSX语法学习</h1>
+                    
+                    
+                    <h2 class="subheading">React中JSX语法学习</h2>
+                    
+                    <span class="meta">Posted by wang chong on March 23, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="jsx语法的介绍">JSX语法的介绍</h3>
+<p>JSX(JavaScript XML) 是基于ECMAScript的一种新特性一种定义带属性树结构的语法。它不是XML或者HTML的一种限制，可以说是对它们的一种。</p>
+
+<p><a href="https://zh-hans.reactjs.org/docs/introducing-jsx.html">官网</a></p>
+
+<h4 id="jsx语法的书写方式">JSX语法的书写方式</h4>
+<p>JSX语法有两种书写方式：一种是ES5的书写方式(现在不适用,还是要记一下吧，以免以后忘了)，一种是ES6的书写方式。</p>
+
+<h5 id="es5的方式">ES5的方式</h5>
+
+<p>ES5使用React.crateClass的方式来构建组件。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var Hello = React.createClass({
+    render : function(){
+        return &lt;h1&gt; {this.props.name}&lt;/h1&gt;
+    }
+})
+</code></pre></div></div>
+
+<h5 id="es6的方式">ES6的方式</h5>
+<p>ES6采用新版本的Class来构建组件</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"use strict";
+class Hello extends React.Component{
+    render(){
+        return &lt;h1&gt;Hello&lt;/h1&gt;
+    }
+}
+</code></pre></div></div>
+<p>上面了两种方式生成出来的叫组件，对应的Hello叫做组件名，简单理解就是HTML标签。但是要怎么注册这两个组件呢？上面两种方式的注册组件的方式相同。</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ReactDOM.render(
+    &lt;Hello name="wang" /&gt;,
+    document.getElementById('app')
+)
+</code></pre></div></div>
+<p>使用ReactDOM.render把我们的组件传进去，然后再传一个DOM节点，相当于把组件里面的东西渲染到id为app的DOM元素里面。</p>
+
+<p>这里传进去了name属性，在组件里面通过使用this.props.name获取。this.props相当于attribute。用于获取书写在组件标签中的属性。</p>
+
+<h4 id="dom-diff">DOM diff</h4>
+<p>DOM diff是DOM比较算法。用于找到最小变化的DOM元素进行渲染，平行化比较，把重绘和重排做到最小化。</p>
+
+<p>在<a href="http://blog.ctomorrow.top/2019/03/23/react-start/">React初探及环境搭建</a>中有提到，react中View层的变化是基于state的，如果状态发生变化，组件中render函数就会重新执行。</p>
+<h5 id="dom-diff算法流程">DOM diff算法流程</h5>
+<p><img src="https://user-gold-cdn.xitu.io/2019/3/23/169a99752bf9ce72?w=729&amp;h=331&amp;f=png&amp;s=100910" alt="" /></p>
+<ol>
+  <li>开始判断节点是否相同，如果节点不相同，就相当于修改了节点，React会重新创建一个节点；</li>
+  <li>如果节点相同，判断是否是自定义节点;</li>
+  <li>如果不是自定义节点(ReactDOM.render也可以渲染html标签)，比较属性是否发生变化，如果属性变更新属性然后结束；</li>
+  <li>如果不是自定义节点，是我们自己写的组件，然后重新渲染，会渲染出一段VirtualDOM（虚拟DOM）,然后和以存在的Virtual DOM进行比较区别，最终渲染到页面。</li>
+</ol>
+
+<h4 id="jsx注意事项">JSX注意事项</h4>
+<ol>
+  <li>
+    <p>React的JSX里约定分别使用首字母大、小写来区分本地组件的类和HTML标签。并使用驼峰命令。</p>
+
+    <p>自定义组件：List，HTML标签：html、htmlMessage</p>
+  </li>
+  <li>
+    <p>要使用JavaScript表达式作为属性值，只需要把这个表达式用一对大括号（{}）包起来，如果直接写值是需要用包起来。不需要用引号（“”）</p>
+
+    <p>如果需要写多行就需要写在()里面，多行书写JSX语法，只能有一个跟标签。
+ 例如：</p>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> return(&lt;div&gt;
+          &lt;span&gt;&lt;/span&gt;  
+        &lt;/div&gt;)
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>htmlFor和className</p>
+
+    <p>在html中label使用for属性、JSX中使用htmlFor，html中css类使用class，JSX中使用className</p>
+  </li>
+  <li>
+    <p>CSS in JS （React style）</p>
+
+    <p>JSX允许在js中书写css，相当于js中的一个对象</p>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> const style = {
+     color:'red',
+     fontSize : 38,
+ }
+ &lt;div style={style}&gt; &lt;div/&gt;
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>JSX里需要加注释很容易，他们只是js表达式而已。只需要在一个标签的子节点内(非最外层)小心的用{}包围要注释的范围，在JSX中写注释和平常是有一些区别。</p>
+
+    <p>{/* 注释内容*/}</p>
+  </li>
+  <li>
+    <p>事件绑定</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     handleChange(e){
+         console.log(e.target)
+     }
+     render(){
+         return (&lt;input onClick = {this.handleChange.bind(this)}/&gt;)  //需要改变this    
+     }
+        
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h3 id="非dom属性的介绍">非DOM属性的介绍</h3>
+<h4 id="dangerouslysetinnerhtml警告">dangerouslySetInnerHTML警告</h4>
+<p>dangerouslySetInnerHTML用于净化数据，预防XSS的攻击</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var rawHTML = {
+    //通过__html来构造出来，
+    __html : "&lt;h2&gt;非dom属性：dangerouslySetInnerHTML标签&lt;/h2&gt;"
+}
+ReactDOM.render(
+    //通过dangerouslySetInnerHTML属性来定义
+    &lt;div dangerouslySetInnerHTML = {rawHTML}&gt;&lt;/div&gt;,
+    document.getElementById("app")
+)
+</code></pre></div></div>
+<h4 id="ref">ref</h4>
+<p>如果在JSX中获取真正的DOM元素，可以使用ref这个属性。</p>
+
+<p>在html元素中添加ref属性</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;input type="text" ref= 'input'/&gt;
+</code></pre></div></div>
+<p>如果想要取得这个DOM元素可以通过<code class="highlighter-rouge">ReactDOM.findDOMNode()</code>来获取,并且需要在React生命周期的<code class="highlighter-rouge">componentDidMount</code>阶段</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ReactDOM.findDOMNode(this.refs.input)   //获取到input元素
+</code></pre></div></div>
+<h4 id="key提高渲染的性能">key提高渲染的性能</h4>
+<p>当在列表渲染的时候，如果不加k的情况下，会把所有的dom全部都干掉，然后在最后插如一个节点，如果加上了k，则会在下一次去更新节点的时候把li一一对应上，可以达到最小化的更新。</p>
+
+<p>不加k的情况下
+<img src="https://user-gold-cdn.xitu.io/2019/3/23/169a99d7e49657e1?w=228&amp;h=113&amp;f=png&amp;s=21663" alt="" />
+加k的情况下
+<img src="https://user-gold-cdn.xitu.io/2019/3/23/169a99d20f85c592?w=227&amp;h=115&amp;f=png&amp;s=22890" alt="" /></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/03/23/react-start/" data-toggle="tooltip" data-placement="top" title="React初探及环境搭建">前一篇<br>
+                        <span>React初探及环境搭建</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/03/23/react-props-state/" data-toggle="tooltip" data-placement="top" title="React props and state">后一篇<br>
+                        <span>React props and state</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

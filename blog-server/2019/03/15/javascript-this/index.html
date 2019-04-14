@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>[读书笔记]探索JavaScript中this机制 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/03/15/javascript-this/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#JavaScript" title="JavaScript">JavaScript</a>
+                        
+                    </div>
+                    <h1>[读书笔记]探索JavaScript中this机制</h1>
+                    
+                    
+                    <h2 class="subheading">JavaScript中this机制的探索之旅</h2>
+                    
+                    <span class="meta">Posted by wang chong on March 15, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<p>我在想写这篇文章的时候，我是无从下手的。因为我自己也同样说不清在JavaScript中this到底是什么？我们都知道在一些强类型语言中（像java）对this有一个很好的定义：<strong>this就是一个指针，指向当前对象</strong>。在JavaScript中如果用上面这种方法来表示this的话，是不完全的。对于我来说，this就像JavaScript中的魔术师，千变万化中又有着那么一丝丝小套路。</p>
+<h3 id="何为this">何为this？</h3>
+<p>this是JavaScript语法中很难捉摸透的一个东西。我们都知道JavaScript执行机制分为四个步骤：<code class="highlighter-rouge">词法分析</code>、<code class="highlighter-rouge">语法分析</code>、<code class="highlighter-rouge">预编译</code>、<code class="highlighter-rouge">解释执行(运行时)</code>。我们在执行代码的时候，通常是在全局中执行一个函数或者通过对象方法调用执行函数，在函数调用过程中得到this。也就是说this这个东西就生在运行时，即<strong>this是在运行时绑定的，而非编译时</strong>。</p>
+
+<h3 id="javascript中函数调用的几种方式">JavaScript中函数调用的几种方式</h3>
+<h4 id="默认调用">默认调用</h4>
+<p>在JavaScript中调用函数的最常见的一种方法就是默认调用。</p>
+<pre><code class="language-JavaScript">function test(){
+    console.log(this);
+}
+test()
+</code></pre>
+<p>正如上面代码这样调用test函数，就是默认调用。</p>
+
+<p>默认调用的情况下，函数的this指向全局对象。</p>
+
+<p>我们都知道在ES5出现了<code class="highlighter-rouge">严格模式</code>这个概念。在严格模式下全局对象的<code class="highlighter-rouge">this</code>指向<code class="highlighter-rouge">undefined</code>，非严格模式下全局对象的<code class="highlighter-rouge">this</code>指向<code class="highlighter-rouge">Window</code>对象。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//严格模式</span>
+<span class="s2">"use strict"</span><span class="p">;</span>
+<span class="kd">function</span> <span class="nx">test</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>  <span class="c1">//undefined</span>
+<span class="p">}</span>
+<span class="nx">test</span><span class="p">()</span>
+</code></pre></div></div>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//非严格模式下</span>
+<span class="kd">function</span> <span class="nx">test</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>  <span class="c1">//window</span>
+<span class="p">}</span>
+<span class="nx">test</span><span class="p">();</span>
+</code></pre></div></div>
+<h4 id="iife">IIFE</h4>
+<p>立即执行函数在执行的时候会形成一个闭包，其中的<code class="highlighter-rouge">this</code>永远指向<code class="highlighter-rouge">window</code>。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>  <span class="c1">//window</span>
+<span class="p">}())</span>
+</code></pre></div></div>
+<h4 id="隐式绑定">隐式绑定</h4>
+<p>隐式绑定也可以说成作为对象的方法来调用。看下面代码</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">test</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">a</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="na">test</span><span class="p">:</span><span class="nx">test</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="nx">obj</span><span class="p">.</span><span class="nx">test</span><span class="p">();</span> <span class="c1">//2</span>
+</code></pre></div></div>
+<p>这里可以看出obj中有一个属性为test，它的属性名为test函数。当test这个属性被创建的时候，会在内存中开辟一小段空间，而内存中所存的值就是test函数所在内存的地址。此时就把test函数隐式的绑定到了obj上面，当使用obj调用test的时候，test中的this就指向了调用test的对象。</p>
+
+<p>这里就可以总结出一个套路：<strong>谁调用函数，函数的this就指向谁</strong>。</p>
+
+<p>另外一种情况：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">foo</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">a</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj2</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+    <span class="na">foo</span> <span class="p">:</span><span class="nx">foo</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj1</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="na">obj2</span> <span class="p">:</span> <span class="nx">obj2</span>
+<span class="p">}</span>
+<span class="nx">obj1</span><span class="p">.</span><span class="nx">obj2</span><span class="p">.</span><span class="nx">foo</span><span class="p">()</span> <span class="c1">//1</span>
+</code></pre></div></div>
+<p>当对象方法调用链很长的时候，只有方法引用链的上一层或者说是最后一层在调用位置中起作用。上面代码中只有obj2会起作用。</p>
+
+<p>隐式绑定中还有一个现象是<strong>隐式丢失</strong>，也就是说当把一个对象的方法暴露在外部的时候(也就是说把对象的方法赋于一个全局的变量)，再通过默认调用的方式调用这个函数，此时的this就不会再指向对象，而是指向window。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">obj</span>  <span class="o">=</span><span class="p">{</span>
+    <span class="na">foo</span> <span class="p">:</span> <span class="kd">function</span><span class="p">(){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">obj</span><span class="p">.</span><span class="nx">foo</span><span class="p">()</span>  <span class="c1">//obj</span>
+<span class="kd">var</span> <span class="nx">fun</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">foo</span><span class="p">;</span> <span class="c1">//把对象的方法暴露在外部</span>
+<span class="nx">fun</span><span class="p">();</span>  <span class="c1">//window</span>
+</code></pre></div></div>
+<h4 id="显示绑定">显示绑定</h4>
+<p>显示绑定也可以称之为硬绑定。所谓硬绑定就是使用一种手段强制的改变函数的this执行，这种强制的手段通过call、apply、bind等函数的API来实现。这里由于说的是this机制，就先不提call、apply、bind等原理。</p>
+<h5 id="functionprototypecall">Function.prototype.call</h5>
+<p>call的作用就是改变函数调用中的this指向，call方法第一个参数就是绑定的this到哪个对象上，后面的参数是传递函数的实参。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">test</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="nx">age</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">age</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span><span class="p">{}</span>
+<span class="nx">test</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span><span class="s1">'xiaoming'</span><span class="p">,</span><span class="mi">18</span><span class="p">);</span>    <span class="c1">// xiaohong 18 obj</span>
+</code></pre></div></div>
+<h5 id="functionprototypeapply">Function.prototype.apply</h5>
+<p>apply的作用和call的作用相同，同样是为了改变this指向，唯一不同的区别是call在传递函数实参的时候是通过分来传参，apply函数传参是通过传递一个数组。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">test</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="nx">age</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">age</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span><span class="p">{}</span>
+<span class="nx">test</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">obj</span><span class="p">,[</span><span class="s1">'xiaoming'</span><span class="p">,</span><span class="mi">18</span><span class="p">]);</span>    <span class="c1">// xiaohong 18 obj</span>
+</code></pre></div></div>
+<h5 id="functionprototypebind">Function.prototype.bind</h5>
+<p>bind是ES5出现的一个API，同样也是可以改变this指向。bind和上面两个API有很大的不同之处，call和apply是立即执行所调用的函数。bind是返回一个新函数，并且支持柯里化(分布传参)。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">test</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="nx">age</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">age</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span><span class="p">{}</span>
+<span class="kd">var</span> <span class="nx">fun</span> <span class="o">=</span> <span class="nx">test</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span><span class="s1">'xiaoming'</span><span class="p">);</span>    <span class="c1">//调用bind方法，第一个参数传入所要绑定的对象，第二个参数传入name,并且返回一个新函数。</span>
+<span class="nx">fun</span><span class="p">(</span><span class="mi">18</span><span class="p">);</span>        <span class="c1">//传递剩余的参数。</span>
+                <span class="c1">//输出 xiaohong 18 obj</span>
+</code></pre></div></div>
+<h4 id="构造函数调用">构造函数调用</h4>
+<p>JavaScript中的面向对象编程是很模糊的，起初这个语言并不是为面向对象编程而设计的，JavaScript语言的特性更类似于函数式编程。我们为了使用JavaScript模拟面向对象编程，从而有了构造函数的概念：<strong>使用new调用的函数称为构造调用，而这个函数被称为构造函数。</strong></p>
+
+<p>发生构造函数调用会自动执行以下操作:</p>
+
+<ol>
+  <li>创建一个全新的对象。</li>
+  <li>这个新对象会被执行[[Prototype]连接</li>
+  <li>这个新对象会绑定到函数调用的this</li>
+  <li>如果函数没有返回其他对象(对象、数组、函数)，那么new表达式中的函数调用会自动返回这个新对象。</li>
+</ol>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">Test</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="nx">age</span><span class="p">){</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">age</span> <span class="o">=</span> <span class="nx">age</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">test</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Test</span><span class="p">(</span><span class="s1">'xiaoming'</span><span class="p">,</span><span class="mi">18</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">test</span><span class="p">)</span>   <span class="c1">//Test{}    </span>
+</code></pre></div></div>
+
+<h3 id="函数调用的优先级">函数调用的优先级</h3>
+<p>那么多函数调用方式，如果同时出现的话究竟哪个优先级高，哪个优先级低呢？</p>
+<h4 id="默认调用和隐式绑定">默认调用和隐式绑定</h4>
+<p>先来看一下最基础的两种</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">test</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="c1">//默认调用</span>
+<span class="nx">test</span><span class="p">();</span> <span class="c1">//window</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">test</span> <span class="p">:</span> <span class="nx">test</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="c1">//隐式绑定</span>
+<span class="nx">obj</span><span class="p">.</span><span class="nx">test</span><span class="p">();</span> <span class="c1">//obj</span>
+</code></pre></div></div>
+<p>可以明显的看出，同一个函数默认调用的情况下this为window，隐式绑定的情况下this指向obj,很明显隐式绑定改变了默认调用的this，所以<strong>隐式绑定的优先级比默认调用的优先级高</strong>。</p>
+<h4 id="隐式绑定和显示绑定">隐式绑定和显示绑定</h4>
+<p>再来看一下隐式绑定</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">temp</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span> <span class="p">:</span> <span class="mi">2</span>
+    <span class="na">foo</span> <span class="p">:</span> <span class="kd">function</span><span class="p">(){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">a</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">//隐式绑定</span>
+<span class="nx">obj</span><span class="p">.</span><span class="nx">foo</span><span class="p">()</span>   <span class="c1">//2</span>
+<span class="c1">//显示绑定</span>
+<span class="nx">obj</span><span class="p">.</span><span class="nx">foo</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">temp</span><span class="p">);</span> <span class="c1">//1</span>
+</code></pre></div></div>
+<p>我们可以发现显示绑定改变了隐式绑定的this，即<strong>显示绑定的优先级大于隐式绑定</strong></p>
+<h4 id="显示绑定和构造调用">显示绑定和构造调用</h4>
+<p>如果让显示绑定和构造调用相比的话，就需要bind了，因为call和apply都是直接调用，没办法和构造调用相比，而bing则是返回一个新函数，可以使用构造调用。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">Test</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">a</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="c1">//显示绑定</span>
+<span class="kd">var</span> <span class="nx">fun</span> <span class="o">=</span> <span class="nx">Test</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span> <span class="c1">//此时函数已经绑定了obj对象。</span>
+<span class="nx">fun</span><span class="p">();</span>      <span class="c1">//执行fun，输出1</span>
+<span class="c1">//构造调用</span>
+<span class="k">new</span> <span class="nx">fun</span><span class="p">();</span> <span class="c1">//unfeinde</span>
+</code></pre></div></div>
+<p>我们发现，fun此时已经绑定了obj，输出1，对的没有关系，使用new fun怎么就输出undefined了呢，其实这里输出的是fun构造函数返回的对象。新创建的对象上没有a属性，我们来修改一行代码再测试下。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">Test</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>重新调用
+<img src="https://user-gold-cdn.xitu.io/2019/3/15/1697fb0c38125897?w=673&amp;h=41&amp;f=png&amp;s=2418" alt="" />
+得出结论<strong>构造函数调用比显示绑定的优先级高</strong>，这里涉及到bind原理的东西，目前没有写这类文章，喜欢探索的可以自行google下。</p>
+
+<p>所以最后得出的结论是：<strong>构造函数调用&gt;显示绑定&gt;隐式绑定&gt;默认调用</strong>。</p>
+
+<h4 id="判断this规则">判断this规则</h4>
+<ol>
+  <li>判断是否是立即执行函数，如果是则this为window，如果不是移步第2步骤。</li>
+  <li>判断this是否是通过构造函数调用,如果是this就绑定新创建的对象,如果不是移步第3步骤。</li>
+  <li>判断是否是通过call、apply、bind等绑定，如果是this绑定指定对象，如果不是移步第4步骤。</li>
+  <li>判断函数是够是在某个上下文对象中调用，如果是this就绑定在上下文对象上，如果不是请移步第5步骤。</li>
+  <li>如果上面都不是的话，那么函数使用默认调用，如果是严格模式，则this为undefined，如果是非严格模式，则this为window。</li>
+</ol>
+
+<h3 id="箭头函数的this">箭头函数的this</h3>
+<p>起这个小标题说实话不太想起，因为箭头函数中是没有this的，怎么说呢,请移步<a href="http://es6.ruanyifeng.com/#docs/function#%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0">软大大的箭头函数</a>。在其他函数中this是可变的，在箭头函数中this是固定的，同样也是因为箭头函数中没有this。在<code class="highlighter-rouge">你不知道的JavaScript(上)</code>中有那么一句话：<strong>箭头函数在涉及this绑定的行为和普通的行为完全不一致。它放弃了所有普通this绑定的规则，取而代之的是用当前的词法作用域覆盖了this本来的值。</strong></p>
+
+<p>这句话和上面其实是不矛盾的，所谓词法通俗的将就是书写代码的位置。箭头函数书写在什么地方，它的this就是所处环境的执行上下文对象的this。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">a</span>  <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">a</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="na">foo</span> <span class="p">:</span> <span class="p">()</span><span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">a</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">//此时obj定义在全局内，箭头函数中的this为window，故：输出2</span>
+<span class="nx">obj</span><span class="p">.</span><span class="nx">foo</span><span class="p">();</span>  <span class="c1">//2</span>
+</code></pre></div></div>
+<pre><code class="language-JavaScript">var a  = 2;
+var obj = {
+    a : 1,
+    fun : function(){
+        var foo = ()=&gt;{
+            console.log(this.a);
+        }
+        foo();
+    }
+}
+//此时foo定义在fun函数中，执行fun函数，fun函数中的this为obj，所以箭头函数中的this为obj。故：输出1
+obj.fun();  //1
+</code></pre>
+<h3 id="总结">总结</h3>
+<ol>
+  <li>如果是箭头函数，则就判断箭头函数定义在什么地方，this就是什么。</li>
+  <li>如果是立即执行函数，则this就是windows</li>
+  <li>其他形式则按照判断this的规则来。</li>
+</ol>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/03/03/yahoo/" data-toggle="tooltip" data-placement="top" title="雅虎军规35条：引用自百度大佬">前一篇<br>
+                        <span>雅虎军规35条：引用自百度大佬</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/03/16/http-cache/" data-toggle="tooltip" data-placement="top" title="HTTP缓存策略">后一篇<br>
+                        <span>HTTP缓存策略</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

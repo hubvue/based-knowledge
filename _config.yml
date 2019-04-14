@@ -1,0 +1,52 @@
+title: Tomorrow
+SEOTitle: 小冲的博客 | Tomorrow Blog
+header-img: img/bg/bg_index.jpg
+email: 15036889002@163.com
+description: Tomorrow is Blog
+keyword: ''
+baseurl: ''
+juejin_username: 5be013ff6fb9a04a0a5ea2f9
+csdn_username: c__dreamer
+github_username: hubvue
+highlighter: rouge
+permalink: pretty
+paginate: 10
+exclude:
+  - less
+  - node_modules
+  - Gruntfile.js
+  - package.json
+  - README.md
+  - README.zh.md
+anchorjs: true
+plugins:
+  - jekyll-paginate
+markdown: kramdown
+kramdown:
+  input: GFM
+bd_share: true
+
+ba_track_id: f6a2411319635fb25d87e059c64cd6ca
+
+sidebar: true
+sidebar-about-description: 一位不知名的小前端
+sidebar-avatar: 'https://user-gold-cdn.xitu.io/2019/2/20/1690b510d7c0bd79?imageView2/1/w/180/h/180/q/85/format/webp/interlace/1'
+featured-tags: true
+
+featured-condition-size: 1
+friends: [{
+	title : "知足常乐的博客",
+	href : "https://www.leer.live/"
+}]
+gems:
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-admin
+# jekyll_admin:
+#   hidden_links:
+#     - posts
+#     - pages
+#     - staticfiles
+#     - datafiles
+#     - configuration
+# destination: /usr/local/nginx/html

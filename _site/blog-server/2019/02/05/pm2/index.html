@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>pm2项目部署总结 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/05/pm2/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#pm2" title="pm2">pm2</a>
+                        
+                        <a class="tag" href="/tags/#项目部署" title="项目部署">项目部署</a>
+                        
+                    </div>
+                    <h1>pm2项目部署总结</h1>
+                    
+                    
+                    <h2 class="subheading">PM2项目部署总结</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 5, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="什么是pm2">什么是pm2</h3>
+<p>pm2是一个带有负载均衡功能的Node应用的进程管理器。pm2是一个后台进程管理器。</p>
+
+<h3 id="前台进程与后台进程">前台进程与后台进程</h3>
+<ol>
+  <li>前台进程是指项目启动进程之后，这个一直在终端中运行，不能关掉，关掉的话项目就会终止。像supervisor和nodemon就是前台进程管理。</li>
+  <li>后台进程是在计算机后台启动一个进行，不会在终端中显示，但是仍然启动。</li>
+</ol>
+
+<h3 id="pm2的特点">pm2的特点</h3>
+<ol>
+  <li>内建负载均衡</li>
+  <li>后台运行</li>
+  <li>0秒停机重启</li>
+  <li>具有Ubuntu和CentOS的启动脚本</li>
+  <li>停止不稳定的进程（避免无限循环）</li>
+  <li>控制台检测</li>
+  <li>提供HTTP API</li>
+  <li>远程控制和实时的接口API(Nodejs模块，允许和pm2进程管理器交互)</li>
+</ol>
+
+<h3 id="pm2的生态文件">pm2的生态文件</h3>
+<p>一般我们会在项目的根目录创建pm2.json文件，基本内容如下：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name" : "node-app",
+    "script" : "app.js",
+    "log_data_format" : "YYYY-MM-DD HH:mm Z",
+    "out_file" : "log/node-app.stdout.log",
+    "watch" : true,
+    "instances": "max",
+    "exec_mode" : "cluster"
+}
+</code></pre></div></div>
+<p>这是一个简单的生态文件。具体的属性值可参考<a href="https://pm2.io/doc/zh/runtime/reference/ecosystem-file/">pm2生态文件属性</a></p>
+
+<p>启动pm2，可直接使用以下命令</p>
+<blockquote>
+  <p>pm2 start pm2.json</p>
+</blockquote>
+
+<h4 id="环境变量的设置">环境变量的设置</h4>
+<p>pm2生态文件中可使用env_[name]的形式设置多个环境变量</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name" : "node-app",
+    "script" : "app.js",
+    "log_data_format" : "YYYY-MM-DD HH:mm Z",
+    "out_file" : "log/node-app.stdout.log",
+    "watch" : true,
+    "instances": "max",
+    "exec_mode" : "cluster"
+    "env" : {
+        "NODE_ENV" : "development"
+    },
+    "env_production" : {
+        "NODE_ENV" :"production"
+    }
+}
+</code></pre></div></div>
+<p>终端使用–env参数指定环境</p>
+<blockquote>
+  <p>pm2 start pm2.json –env production</p>
+</blockquote>
+
+<p>项目一旦启动环境变量就是定值，无法更改，如果非要更改可使用–update-env来更改</p>
+<blockquote>
+  <p>pm2 restart pm2.json –update-env</p>
+</blockquote>
+
+<h3 id="进程管理">进程管理</h3>
+<p>pm2是一个保存在后台的进程，一个守护进程，负责处理您所有正在运行的进程。</p>
+<h4 id="pm2-进程命令">pm2 进程命令</h4>
+<p>启动进程</p>
+<blockquote>
+  <p>pm2 start pm2.json</p>
+</blockquote>
+
+<p>停止进程</p>
+<blockquote>
+  <p>pm2 stop node-app     node-app为启动进程名称</p>
+</blockquote>
+
+<blockquote>
+  <p>pm2 stop all 停止所有</p>
+</blockquote>
+
+<p>重启进程</p>
+<blockquote>
+  <p>pm2 restart node-app</p>
+</blockquote>
+
+<p>列出所有进程</p>
+<blockquote>
+  <p>pm2 ls</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bcfdcb81e5f8b?w=630&amp;h=90&amp;f=png&amp;s=53279" alt="" /></p>
+
+<p>启动本地监控</p>
+<blockquote>
+  <p>pm2 monit</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bcfe75ec12aae?w=652&amp;h=452&amp;f=png&amp;s=98974" alt="" /></p>
+
+<h3 id="pm2的日志管理">pm2的日志管理</h3>
+<p>pm2的日志可以实时获取并存储在硬盘中，默认情况下保存在~/.pm2/logs中</p>
+
+<p>所有进程的实时日志</p>
+<blockquote>
+  <p>pm2 logs</p>
+</blockquote>
+
+<p>可指定进程名称表示只查看单个进程的实时日志</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bd002bb761da6?w=645&amp;h=349&amp;f=png&amp;s=166250" alt="" /></p>
+
+<p>清空日志</p>
+<blockquote>
+  <p>pm2 flush</p>
+</blockquote>
+
+<h4 id="用配置文件指定日志管理">用配置文件指定日志管理</h4>
+<p>就下面的配置而言</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": './out.log',
+    "error": './error.log',
+	"log": './combined.outerr.log',
+}
+</code></pre></div></div>
+<ol>
+  <li>output表示只是标准输出相当于JavaScript的console.log()</li>
+  <li>error表示只是错误输出相当于JavaScript的console.error()</li>
+  <li>log 相当于上面两种的结合，默认是禁用的。</li>
+  <li>循环日志：pm2 install pm2-logrotate</li>
+</ol>
+
+<h5 id="合并日志">合并日志</h5>
+<p>负载均衡集群模式下，每一个都有自己的日志文件在pm2.json中加上merg_logs:true就可以合并日志文件</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": './out.log',
+    "error": './error.log',
+	"log": './combined.outerr.log',
+	"merge_logs" : true,
+}
+</code></pre></div></div>
+<h5 id="禁用日志">禁用日志</h5>
+<p>如果想禁用日志的话，在配置文件中output和error的值改为’/dev/null’就可以禁用日志</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": '/dev/null',
+    "error": '/dev/null',
+}
+</code></pre></div></div>
+<h5 id="格式化日志">格式化日志</h5>
+<p>通过在配置文件中添加属性”log_type” : “json”，让日志为json文件输出</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": './out.log',
+    "error": './error.log',
+	"log": './combined.outerr.log',
+	"log_type" : "json",
+	"merge_logs" : true,
+}
+</code></pre></div></div>
+<h5 id="日志时间戳">日志时间戳</h5>
+<p>通过在配置文件中添加属性 “log_data_format” : “YYYY-MM-DD HH:mm Z”,让日志有时间戳</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": './out.log',
+    "error": './error.log',
+	"log": './combined.outerr.log',
+	"log_type" : "json",
+	 "log_data_format" : "YYYY-MM-DD HH:mm Z",
+	"merge_logs" : true,
+}
+</code></pre></div></div>
+<h3 id="启动脚本">启动脚本</h3>
+<p>启动脚本的目的是保存我们的进程列表，并在计算机重启甚至出现意外时将其恢复。</p>
+
+<p>每个操作系统都有一个特定的工具来处理启动脚本。</p>
+
+<h4 id="安装">安装</h4>
+<p>检测计算机上可用的init系统并生成配置</p>
+<blockquote>
+  <p>pm2 startup</p>
+</blockquote>
+
+<blockquote>
+  <p>sudo su -c “env PATH=$PATH:/home/unitech/.nvm/versions/node/v4.3/bin pm2 startup <distribution> -u <user> --hp <home-path></home-path></user></distribution></p>
+</blockquote>
+
+<h4 id="保存进程列表">保存进程列表</h4>
+<blockquote>
+  <p>pm2 save</p>
+</blockquote>
+
+<h4 id="禁用启动脚本">禁用启动脚本</h4>
+<blockquote>
+  <p>pm2 unstartup</p>
+</blockquote>
+
+<h4 id="设置用户权限">设置用户权限</h4>
+<p>如果您希望启动挂钩在其他用户下执行，使用 -u &lt; username &gt;和 –hp &lt; user_home&gt;选项：</p>
+<blockquote>
+  <p>pm2 startup ubuntu -u www –hp /home/ubuntu</p>
+</blockquote>
+
+<h4 id="更新启动脚本">更新启动脚本</h4>
+<blockquote>
+  <p>pm2 unstartup</p>
+</blockquote>
+
+<blockquote>
+  <p>pm2 startup</p>
+</blockquote>
+
+<h4 id="兼容性">兼容性</h4>
+<p>支持的Init系统是：</p>
+<ol>
+  <li>systemd: Ubuntu &gt;= 16, CentOS &gt;= 7, Arch, Debian &gt;= 7</li>
+  <li>upstart: Ubuntu &lt;= 14</li>
+  <li>launchd: Darwin, MacOSx</li>
+  <li>openrc: Gentoo Linux, Arch Linux</li>
+  <li>rcd: FreeBSD</li>
+  <li>systemv: Centos 6, Amazon Linux</li>
+</ol>
+
+<p>在启动时候可以指定平台</p>
+<blockquote>
+  <table>
+    <tbody>
+      <tr>
+        <td>pm2 [startup</td>
+        <td>unstartup] [platform]</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<p>最后的参数可以是下面的任意一个</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>[ubuntu</td>
+      <td>ubuntu14</td>
+      <td>ubuntu12</td>
+      <td>centos</td>
+      <td>centos6</td>
+      <td>arch</td>
+      <td>oracle</td>
+      <td>amazon</td>
+      <td>macos</td>
+      <td>darwin</td>
+      <td>freebsd</td>
+      <td>systemd</td>
+      <td>systemv</td>
+      <td>upstart</td>
+      <td>launchd</td>
+      <td>rcd</td>
+      <td>openrc]。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="各操作系统的启动脚本">各操作系统的启动脚本</h4>
+<ol>
+  <li>ubuntu 使用 updaterc.d 和脚本 lib/scripts/pm2-init.sh</li>
+  <li>centos/redhat 使用 chkconfig 和脚本 lib/scripts/pm2-init-centos.sh</li>
+  <li>gentoo 使用 rc-update 和脚本 lib/scripts/pm2</li>
+  <li>systemd 使用 systemctl 和脚本 lib/scripts/pm2.service</li>
+  <li>darwin 使用 launchd 来加载一个特定的 plist 以便在重启后复活进程.</li>
+</ol>
+
+<h3 id="负载均衡">负载均衡</h3>
+<p>pm2的负载均衡也可以称之为集群模式。下面是官网的一张图</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bd60acd46b2af?w=617&amp;h=260&amp;f=png&amp;s=85966" alt="" />
+内置的负载平衡器提供联网的Node.js应用（http（s）/ tcp /udp服务器），可在所有可用的CPU上进行缩放，无需修改任何代码。</p>
+
+<h4 id="使用">使用</h4>
+<p>在启动时候可以通过-i+参数来启动负载均衡</p>
+<blockquote>
+  <p>pm2 start pm2.json -i max</p>
+</blockquote>
+
+<p>max表示pm2将自动检测可用cpu的数量并尽可能的多运行进程。</p>
+
+<h4 id="在配置文件中使用">在配置文件中使用</h4>
+<p>在pm2.json文件中添加instances属性就可以实现上述操作</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": './out.log',
+    "error": './error.log',
+	"log": './combined.outerr.log',
+	"log_type" : "json",
+	 "log_data_format" : "YYYY-MM-DD HH:mm Z",
+	"merge_logs" : true,
+	"instances" : "max"  值可以是一个整数 表示特定数量的集群，可以使max字符，表示启动cpu内核数量最大的集群。
+}
+</code></pre></div></div>
+
+<h4 id="0秒宕机重载">0秒宕机重载</h4>
+<p>当使用restart时，pm2会先杀死进程然后再重启进程，所以在短时间内无法启动服务，通过重载，pm2会一一的重启所有进程，保证始终都有一个进程在运行。</p>
+<blockquote>
+  <p>pm2 reload node-app 或者 pm2 reload pm2.json</p>
+</blockquote>
+
+<h3 id="观测">观测</h3>
+<p>pm2有个非常强大的观测系统，在配置文件中把watch属性值改为true，就可以启动这个观测，或者在命令行启动的时候后面加上–watch</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+    "name": 'app',
+    "script": 'app.js',
+    "output": './out.log',
+    "error": './error.log',
+	"log": './combined.outerr.log',
+	"log_type" : "json",
+	 "log_data_format" : "YYYY-MM-DD HH:mm Z",
+	"merge_logs" : true,
+	"instances" : "max"  值可以是一个整数 表示特定数量的集群，可以使max字符，表示启动cpu内核数量最大的集群。
+	"watch" : true,
+}
+</code></pre></div></div>
+<p><a href="https://app.pm2.io/">这个是pm2的观测平台</a></p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/5/168bd6dc1fe9c048?w=1350&amp;h=670&amp;f=png&amp;s=172637" alt="" /></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/05/es6-use/" data-toggle="tooltip" data-placement="top" title="浏览器支持ES6的最优解决方案">前一篇<br>
+                        <span>浏览器支持ES6的最优解决方案</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/09/hapi/" data-toggle="tooltip" data-placement="top" title="Hapi框架总结">后一篇<br>
+                        <span>Hapi框架总结</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

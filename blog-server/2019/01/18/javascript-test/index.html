@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>JavaScript集成化测试 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/01/18/javascript-test/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#JavaScript" title="JavaScript">JavaScript</a>
+                        
+                        <a class="tag" href="/tags/#测试" title="测试">测试</a>
+                        
+                    </div>
+                    <h1>JavaScript集成化测试</h1>
+                    
+                    
+                    <h2 class="subheading">JavaScript单元测试、e2e测试、UI测试、接口测试</h2>
+                    
+                    <span class="meta">Posted by wang chong on January 18, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h2 id="来一打javascript集成化测试实战篇">来一打JavaScript集成化测试(实战篇)</h2>
+<p><a href="https://github.com/hubvue/nota/issues/26">JavaScript与QA工程师(理论篇)</a>
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/%E5%AE%9E%E6%88%98JavaScript%E9%9B%86%E6%88%90%E5%8C%96%E6%B5%8B%E8%AF%95.png" alt="" /></p>
+
+<h2 id="开搞">开搞</h2>
+<h3 id="单元测试">单元测试</h3>
+<p>单元测试的测试框架有很多中，今天用的是<a href="http://karma-runner.github.io/3.0/intro/installation.html">karma</a>，还有一个是React推出的<a href="https://jestjs.io/docs/en/getting-started">jest</a></p>
+<h4 id="初始化npm">初始化npm</h4>
+<blockquote>
+  <p>npm  init -y</p>
+  <h4 id="下载karma包">下载karma包</h4>
+  <p>npm install karam –save-dev</p>
+  <h4 id="安装karma-jasmine和jasmine-core断言库">安装karma-jasmine和jasmine-core断言库</h4>
+  <p>npm install karma-jasmine jasmine-core –save-dev</p>
+  <h4 id="安装phantomjs-和-karma无头浏览器启动项">安装PhantomJS 和 karma无头浏览器启动项</h4>
+  <p>npm install –save-dev karma-phantomjs-launcher(这个在karma init的时候会下载，可以先不下载，需要翻墙，代理服务器带宽不好的下载不下来。一个解决办法是整个好的代理服务器，二个解决办法是使用cnpm下载)</p>
+</blockquote>
+
+<blockquote>
+  <p>npm install phantom –save-dev</p>
+</blockquote>
+
+<h4 id="初始化karma包">初始化karma包</h4>
+<blockquote>
+  <p>karma initceshi</p>
+</blockquote>
+
+<p>执行上面这个命令会有几个选项让选择</p>
+<ol>
+  <li>which testing framework do you want to use? (你想用什么测试框架)
+我们选jasmine。</li>
+  <li>Do you want to use Require.js ?（用Require.js吗）
+按需求来选，如果用的话选yes，不用的话选no</li>
+  <li>Do you want to capture any browsers automatically ?（是否要进行浏览器的比较）
+找浏览器执行ceshi，这里是用的是phantomJS，这是一个无头浏览器，也就是无界面浏览器，可以在终端执行操作DOM元素。ceshi</li>
+  <li>What is tceshihe location of your source and test files ?（测试文件和原文件的位置在什么地方？？）
+可选可不选，ceshi可以自己配置。</li>
+  <li>Should anceshiy of the files included by the previous patterns be excluded ?（是否要有一些其他文件被包含）ceshi
+可选可不选，ceshi这里不选</li>
+  <li>Do you waceshint Karma to watch all the files and run the tests on change ?（你想让Karma监视所有的文件并运行变更测ceshi试吗？）
+可选可不选，这里不选</li>
+</ol>
+
+<p>安装完成之后，会生成karma.vonf.js文件，这个就是karma的配置文件。</p>
+<h4 id="karma配置文件">karma配置文件</h4>
+<p>我们来看一下配置文件，去掉注释就剩这么多，解释一下中要的几个。</p>
+<pre><code class="language-JavaScript">modulceshits = function(config) {
+  conceshi({
+    bceshi: '',   //基本路径
+    fceshiks: ['jasmine'],   
+    //需要添加测试文件
+    files: [
+      "./unit/**/*.js",
+      "./unit/**/*.spec.js"
+    ],
+    exclude: [
+    ],
+    preprocessors: {
+      "./unit/**/*.js":['coverage']
+    },
+    //生成测试报表的过程
+    reporters: ['progress','coverage'],
+    //代码覆盖率文档生成的路径
+    coverageReporter: {
+      type : 'html',
+      dir : 'docs/coverage/'
+    },
+    port: 9876,
+    colors: true,
+    logLevel: config.LOG_INFO,
+    autoWatch: false,
+    browsers: ['PhantomJS'],
+    singleRun: true,
+    concurrency: Infinity
+  })
+}
+</code></pre>
+<ol>
+  <li>frameworks：是指测试所用到的断言库是什么，我用的是jasmine。</li>
+  <li>files：是需要测试的文件，配置两中，一种是需要测试的文件，一种是测试文件(.spec.js结尾)。主要**是所有的文件夹， *是所有的文件。</li>
+  <li>preprocessors：这个是指定什么文件生成报表文件。</li>
+  <li>reporters：以什么样的方式生成报表。</li>
+  <li>coverageReporter：生成报表的形式和路径。</li>
+  <li>browsers：指定测试用到的浏览器，这里用PhantomJS无头浏览器。</li>
+  <li>singleRun：如果上面browsers指定的是PhantomJS，这里要改为true。</li>
+</ol>
+
+<h5 id="开始需要添加的配置指定测试文件的路径">开始需要添加的配置–指定测试文件的路径</h5>
+<p>files: [
+    “./unit/ ** / * .js”,     <br />
+    “./unit/ ** / * .spec.js”
+],</p>
+<h4 id="编写测试用例">编写测试用例</h4>
+<p>假设我们测试一下代码</p>
+<pre><code class="language-JavaScript">window.add = function(a){
+    if(a == 1){
+        return 1;
+    }else {
+        return a + 1;
+    }
+}
+</code></pre>
+<p>测试用例这样写</p>
+<pre><code class="language-JavaScript">describe("测试基本函数的API",function(){
+    it("+1函数的引用",function(){
+        expect(window.add(1)).toBe(1);
+    });
+})
+</code></pre>
+<ol>
+  <li>describe：整个项目的描述</li>
+  <li>it:是每一个测试用例</li>
+  <li>expect：是断言</li>
+  <li>toBe：直接的结果与谁相比</li>
+</ol>
+
+<h4 id="启动测试">启动测试</h4>
+<blockquote>
+  <p>karma start</p>
+</blockquote>
+
+<p>测试成功的话是绿色的显示SUCCESS
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/karma-succ.png" alt="" />
+测试失败的话会报错。
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/karma-err.png" alt="" /></p>
+
+<h4 id="代码的覆盖率检查">代码的覆盖率检查</h4>
+<p>当测试代码用有ifelse的时候，测试用例中只写一个测试是达不到完成测试的，就上面测试代码而言。我们用代码的覆盖率检查来检测一下。</p>
+
+<p>覆盖率检查通过karma-coverage来完成</p>
+<blockquote>
+  <p>npm install karma-coverage –save-dev</p>
+</blockquote>
+
+<p><strong>在karma.conf.js中修改</strong>
+设置以coverage的方式生成报表</p>
+<pre><code class="language-JavaScript">reporters: ['progress','coverage'],
+</code></pre>
+<p><strong>设置处理的文件</strong></p>
+<pre><code class="language-JavaScript">preprocessors: {
+    "unit/**/*.js":['coverage']
+}
+</code></pre>
+<p><strong>文档生成的位置</strong>
+在目录下设置docs文件夹存放报表文件</p>
+<pre><code class="language-JavaScript">coverageReporter: {
+    type : 'html',
+    dir : 'docs/coverage/'
+}
+</code></pre>
+<h5 id="生成的报表文件">生成的报表文件</h5>
+<p>此时生成的报表文件
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/karma-coverage.png" alt="" />
+可以看到Branches是50%，说明只能测试到了50%的代码
+我们修改测试代码</p>
+<pre><code class="language-JavaScript">describe("测试基本函数的API",function(){
+    it("+1函数的引用",function(){
+        expect(window.add(1)).toBe(1);
+        expect(window.add(2)).toBe(3);
+    });
+})
+</code></pre>
+<p>此时的测试用例
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/karma-coverage1.png" alt="" /></p>
+
+<h2 id="功能测试">功能测试</h2>
+<h3 id="e2e测试">e2e测试</h3>
+<p>e2e主要测浏览器的功能测试
+e2e主要使用的是selenium-webdriver，这里是它其他的一些方法<a href="https://blog.csdn.net/wang1472jian1110/article/details/79085913">API</a></p>
+<h4 id="安装selenium-webdriver">安装selenium-webdriver</h4>
+<blockquote>
+  <p>npm install selenium-webdriver –save-dev</p>
+</blockquote>
+
+<p>selenium-webdriver通过自动启动浏览器进行e2e测试，因此必须要安装浏览器驱动程序。
+<a href="https://www.npmjs.com/package/selenium-webdriver">在这里</a>下载各大浏览器的驱动程序，把下载好的驱动程序解压下来放在项目根路径下就可以了。</p>
+
+<h4 id="测试流程">测试流程</h4>
+<p>比如说我们要测试百度的input框输入内容之后跳转的相应的界面中的title值。
+在项目根目录中创建e2e文件夹，创建baidu.spec.js文件，这个baidu.spec.js文件就是测试文件。测试文件中代码如下。</p>
+<pre><code class="language-JavaScript">const {Builder, By, Key, until} = require('selenium-webdriver');
+(async function example() {
+    //一定要下载相对应浏览器的执行驱动
+    //forBrowser里就是指定用什么样的浏览器进行测试。
+    let driver = await new Builder().forBrowser('firefox').build();
+    try {
+        //需要测试网站的url
+        await driver.get('http://www.baidu.com');
+        //name()表示找到页面中input的name值
+        //sendKeys的第一个值表示自动化在文本框中输入的内容
+        //第二个值Key.RETURN  表示按回车
+        await driver.findElement(By.name('q')).sendKeys('Hello', Key.RETURN);
+        //匹配自动化搜索后出现的数据
+        //数字1000就是测试需要等待的时间，如果网慢，可以调大一些。
+        await driver.wait(until.titleIs('Hello_百度搜索'), 1000);
+    } finally {
+        //系统要退出
+        await driver.quit();
+    }
+})();
+</code></pre>
+<p>特别注意的是最后driver.quit()，系统一定要退出，如果不退出的话，就会堵塞后面的加载。</p>
+<h4 id="启动测试-1">启动测试</h4>
+<p>selenium-webdriver是基于node的语法，因此执行</p>
+<blockquote>
+  <p>node ./e2e/*.spec.js</p>
+</blockquote>
+
+<p>就可以启动测试</p>
+<h4 id="测试结果">测试结果</h4>
+<p>测试正确不会出现任何状态，
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/selenium-succ.png" alt="" />
+测试不正确会报错
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/selenium-err.png" alt="" /></p>
+
+<p><a href="http://nightwatchjs.org/">nightwatch</a>也是做e2e测试的一个框架，这里先不说，以后用这个做e2e。</p>
+<h3 id="用rize来做e2e测试">用rize来做e2e测试</h3>
+<p><a href="https://rize.js.org/zh-CN/">rize.js</a>是一个新出的测试框架，在这里检测一下e2e测试。
+与rize.js配合的是一个新出的无头浏览器puppeteer，它和selenium-webdriver不同的是它不需要打开浏览器去测试。</p>
+
+<p><strong>rize.js实际上是对puppeteer的一个高度封装</strong></p>
+
+<h4 id="安装rize和puppeteer">安装rize和puppeteer</h4>
+<blockquote>
+  <p>npm install –save-dev puppeteer rize(必须科学上网装)</p>
+</blockquote>
+
+<h4 id="测试用例">测试用例</h4>
+<p>和selenium-webdriver一样，我们假设测试giuhub网站，输入node 会不会出现Node.js这几个字。（注意的是rize搜索是全页面的搜索，因此会慢些）。
+在e2e文件夹下创建github.spec.js</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Rize</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"rize"</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">rize</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Rize</span><span class="p">();</span>
+<span class="nx">rize</span>
+    <span class="p">.</span><span class="kr">goto</span><span class="p">(</span><span class="s1">'https://github.com/'</span><span class="p">)</span>        <span class="c1">//打开url</span>
+    <span class="p">.</span><span class="nx">type</span><span class="p">(</span><span class="s1">'input.header-search-input'</span><span class="p">,</span> <span class="s1">'node'</span><span class="p">)</span>  <span class="c1">//找到文本框 输入文本</span>
+    <span class="p">.</span><span class="nx">press</span><span class="p">(</span><span class="s1">'Enter'</span><span class="p">)</span>        <span class="c1">//进行回车</span>
+    <span class="p">.</span><span class="nx">waitForNavigation</span><span class="p">()</span>    <span class="c1">//等待</span>
+    <span class="p">.</span><span class="nx">assertSee</span><span class="p">(</span><span class="s1">'Node.js'</span><span class="p">)</span>   <span class="c1">//判断页面中是否出现指定文字</span>
+    <span class="p">.</span><span class="nx">end</span><span class="p">()</span>  <span class="c1">// 别忘了调用 `end` 方法来退出浏览器！</span>
+</code></pre></div></div>
+<p>可见上述用例在语法上就比较简洁，容易看懂。</p>
+<h4 id="启动测试-2">启动测试</h4>
+<p>rize是基于node的语法，因此执行</p>
+<blockquote>
+  <p>node ./e2e/*.spec.js</p>
+</blockquote>
+
+<p>就可以启动测试</p>
+
+<h4 id="测试结果-1">测试结果</h4>
+<p>成功的测试不会有任何反应。
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/rize-succ.png" alt="" />
+错误的测试会报错
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/rize-err.png" alt="" /></p>
+
+<h3 id="ui测试">UI测试</h3>
+<h4 id="什么是ui走查">什么是UI走查</h4>
+<p>把对应生成的页面看，看过之后比对是否还原UI图正确，还原对了就让上线，没有还原对就不让上线。
+最早的UI走查就是Phantom的妹妹  <a href="https://github.com/HuddleEng/PhantomCSS">phantom-css</a></p>
+
+<h4 id="ui测试框架backstopjs">UI测试框架backstopJS</h4>
+<blockquote>
+  <p>npm install  backstopjs –save-dev</p>
+</blockquote>
+
+<h4 id="初始化backstopjs项目">初始化backstopJS项目</h4>
+<blockquote>
+  <p>backstop init</p>
+</blockquote>
+
+<p>初始化之后，出现了几个配置文件</p>
+<ol>
+  <li>backstop.json是配置文件</li>
+  <li>backstop_data是backstop的引擎
+    <ul>
+      <li>cookies.json：如果网站中需要cookie登录的话，可以在这里模拟cookie</li>
+      <li>casper：主要在无头浏览器中进行操作</li>
+      <li>chromy：对chrome版本的内核的一些操作</li>
+      <li>puppet</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="backstopjson配置文件">backstop.json配置文件</h4>
+<h5 id="设置页面分辨率可同时设置好几个">设置页面分辨率，可同时设置好几个。</h5>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"viewports"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"phone"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"width"</span><span class="p">:</span><span class="w"> </span><span class="mi">375</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"height"</span><span class="p">:</span><span class="w"> </span><span class="mi">667</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ipad"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"height"</span><span class="p">:</span><span class="w"> </span><span class="mi">768</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">],</span><span class="w">
+</span></code></pre></div></div>
+<h5 id="配置每一个测试用例">配置每一个测试用例</h5>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"QQmap"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"cookiePath"</span><span class="p">:</span><span class="w"> </span><span class="s2">"backstop_data/engine_scripts/cookies.json"</span><span class="p">,</span><span class="err">//如果网站中有登录cookie，必须在这里指定cookie</span><span class="w">
+    </span><span class="s2">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://map.qq.com/m/"</span><span class="p">,</span><span class="w"> </span><span class="err">//这里是测试的网站</span><span class="w">
+    </span><span class="s2">"referenceUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"readyEvent"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"readySelector"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"delay"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"hideSelectors"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="s2">"removeSelectors"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="s2">"hoverSelector"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"clickSelector"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"postInteractionWait"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"selectors"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="s2">"selectorExpansion"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"expect"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"misMatchThreshold"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"requireSameDimensions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">],</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="参考文件路径">参考文件路径</h4>
+<p>由于backstopJS测试是进行的UI走查的环节，必须指定设计图，把参考文件放在”backstop_data/bitmaps_reference”文件夹下，可在backstop.json中paths下面的bitmaps_reference设置。</p>
+
+<p><strong>注意：backstop.json中viewports中写了几个视图就要匹配几种参考图片</strong></p>
+
+<h4 id="启动测试-3">启动测试</h4>
+<blockquote>
+  <p>backstop test</p>
+</blockquote>
+
+<h4 id="测试结果-2">测试结果</h4>
+<p>会生成一个报表，自动打开网页，网页里会形成测试网页与设计图的匹配。查看测试结果。
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/backstop.png" alt="" /></p>
+
+<h3 id="接口测试">接口测试</h3>
+<p>前端接口测试一般用测自己，测自己的node接口。
+在项目根目录下创建service文件夹和mochaRunner.js文件。</p>
+<ol>
+  <li>service文件夹主要放测试同步接口的测试文件。</li>
+  <li>mochaRunner.js主要用于测试异步接口。</li>
+</ol>
+
+<h4 id="测试框架">测试框架</h4>
+<p>使用mocha进行接口测试</p>
+
+<h4 id="安装mocha">安装mocha</h4>
+<blockquote>
+  <p>npm install mocha –save-dev</p>
+</blockquote>
+
+<h4 id="测试流程-1">测试流程</h4>
+<p>我们自己写一段express代码,自测一下。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"express"</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+<span class="nx">app</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s2">"/test"</span><span class="p">,(</span><span class="nx">req</span><span class="p">,</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="na">result</span> <span class="p">:</span> <span class="s2">"hello world"</span><span class="p">,</span>
+    <span class="p">})</span>
+<span class="p">})</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mi">3000</span><span class="p">,()</span><span class="o">=&gt;</span><span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"server is running"</span><span class="p">);</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>在service文件夹下，创建router.spec.js用于测试上述接口。
+注意的是router.spec.js中的测试代码和karma单元测试中的测试代码风格相同。唯一不同的是，接口测试是跑在node服务上的必须把进程done掉，不然会阻塞执行。
+下面是测试代码</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">axios</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"axios"</span><span class="p">);</span>
+<span class="nx">describe</span><span class="p">(</span><span class="s2">"node接口测试"</span><span class="p">,</span><span class="kd">function</span><span class="p">(){</span>
+    <span class="nx">it</span><span class="p">(</span><span class="s2">"test接口测试"</span><span class="p">,</span><span class="kd">function</span><span class="p">(</span><span class="nx">done</span><span class="p">){</span>
+        <span class="nx">axios</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s2">"http://127.0.0.1:3000/test"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">){</span>
+            <span class="k">if</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">result</span> <span class="o">==</span> <span class="s1">'hello world'</span><span class="p">){</span>
+                <span class="c1">//必须要done</span>
+                <span class="nx">done</span><span class="p">();</span>
+            <span class="p">}</span><span class="k">else</span> <span class="p">{</span>
+                <span class="nx">done</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">"请求接口数据出错"</span><span class="p">));</span>
+            <span class="p">}</span>
+        <span class="p">}).</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">error</span><span class="p">){</span>
+            <span class="nx">done</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
+        <span class="p">})</span>
+    <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p>在mochaRunner.js中编写异步测试</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">Mocha</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"mocha"</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">mocha</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Mocha</span><span class="p">({</span>
+    <span class="na">reporter</span><span class="p">:</span> <span class="s1">'mochawesome'</span><span class="p">,</span>
+<span class="p">});</span>
+<span class="c1">//把测试文件送进来</span>
+<span class="nx">mocha</span><span class="p">.</span><span class="nx">addFile</span><span class="p">(</span><span class="s2">"./service/router.spec.js"</span><span class="p">);</span>
+<span class="c1">//执行mocha</span>
+<span class="nx">mocha</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">errLen</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">errLen</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">//正常退出</span>
+        <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">();</span>
+    <span class="p">}</span><span class="k">else</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"出错长度"</span><span class="p">,</span><span class="nx">errLen</span><span class="p">);</span>
+        <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h4 id="生成测试报表">生成测试报表</h4>
+<p>使用mochawesome生成测试报表</p>
+<h5 id="安装mochawesome">安装mochawesome</h5>
+<blockquote>
+  <p>npm install mochawesome –save-dev</p>
+</blockquote>
+
+<p>在mochaRunner.js中配置</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">mocha</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Mocha</span><span class="p">({</span>
+    <span class="na">reporter</span><span class="p">:</span> <span class="s1">'mochawesome'</span><span class="p">,</span>
+    <span class="na">reporterOptions</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">reportDir</span> <span class="p">:</span> <span class="s2">"docs/mochawesome-report"</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div></div>
+<p>这样就可以生成测试报表。</p>
+
+<h4 id="启动测试-4">启动测试</h4>
+<p>mocha是基于node的语法，因此执行</p>
+<blockquote>
+  <p>node ./mochaRunner.js</p>
+</blockquote>
+
+<h4 id="测试结果-3">测试结果</h4>
+<p>代码中会返回一个出错长度，如果出错长度为0的话就不是出错，如果出错长度不为0就是出错了。</p>
+
+<p>正确的测试结果
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/mocha-succ.png" alt="" />
+错误的测试结果
+<img src="https://raw.githubusercontent.com/hubvue/nota/master/image/mocha-err.png" alt="" /></p>
+
+<h3 id="最后的希望-集成化测试">最后的希望-集成化测试</h3>
+<p>利用pachage.json串行和并行执行命令的方式集成化测试</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">串行</span><span class="w">
+    </span><span class="s2">"test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"npm run unit &amp;&amp; npm run e2e &amp;&amp; npm run ui &amp;&amp; npm run service"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"unit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"karma start"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"e2e"</span><span class="p">:</span><span class="s2">"node ./e2e/*.spec.js"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"ui"</span><span class="p">:</span><span class="s2">"backstop test"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"service"</span><span class="p">:</span><span class="s2">"node ./mochaRunner.js"</span><span class="p">,</span><span class="w">
+
+</span><span class="err">并行</span><span class="w">
+    </span><span class="s2">"test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"npm run unit &amp; npm run e2e &amp; npm run ui &amp; npm run service"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"unit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"karma start"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"e2e"</span><span class="p">:</span><span class="s2">"node ./e2e/*.spec.js"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"ui"</span><span class="p">:</span><span class="s2">"backstop test"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"service"</span><span class="p">:</span><span class="s2">"node ./mochaRunner.js"</span><span class="p">,</span><span class="w">
+</span></code></pre></div></div>
+<p>由此可见 上述test方式太过繁琐，我们通过一个工具简化一下，这个工具就是 npm-run-all</p>
+<h4 id="安装npm-run-all">安装npm-run-all</h4>
+<blockquote>
+  <p>npm install npm-run-all –save-dev</p>
+</blockquote>
+
+<h4 id="使用">使用</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"npm-run-all  unit  e2e  ui  service"</span><span class="p">,</span><span class="w">
+</span></code></pre></div></div>
+<p>上面这种方式不是并发执行 如果有，某一步出错，就会终止。可以加一个参数让它变成并发执行</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"npm-run-all --parallel   unit  e2e  ui  service"</span><span class="p">,</span><span class="w">
+</span></code></pre></div></div>
+<p>完事！！！</p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/01/22/PromiseA+/" data-toggle="tooltip" data-placement="top" title="手写一个PromiseA+">后一篇<br>
+                        <span>手写一个PromiseA+</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

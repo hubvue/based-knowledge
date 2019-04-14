@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>记一次webpack配置文件的分离 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/01/23/webpack-config/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#webpack" title="webpack">webpack</a>
+                        
+                    </div>
+                    <h1>记一次webpack配置文件的分离</h1>
+                    
+                    
+                    <h2 class="subheading">记一次webpack配置文件的分离思考</h2>
+                    
+                    <span class="meta">Posted by wang chong on January 23, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<p>随着前端技术的发展，业务逻辑的增多及功能化的繁琐已经成为前端人员最烧脑的问题。前端自动化构建工具的出现，为前端人员带来了项目构建上的福音，成为每个前端工程师必回的技术栈，目前比较流行的Webpack以万物皆模块的思想构建我们的前端项目，同样也是笔者正在使用的一个前端自动化构建工具。</p>
+
+<p>Webpack对于每个前端人员来说都不会怎么陌生，它将每一个静态文件当做一个模块，经过一系列的处理为我们整合出最后的需要的js、css、图片、字体等文件。</p>
+
+<h3 id="单个配置文件所造成的问题">单个配置文件所造成的问题</h3>
+<p>本文默认电脑前的你已经了解一些Webpack基础的配置，并懂得了webpack.config.js配置文件的基础搭建。</p>
+
+<p>随着我们业务逻辑的增多，图片、字体、css、ES6以及CSS预处理器和后处理器逐渐的加入到我们的项目中来，进而导致配置文件的增多，使得配置文件书写起来比较繁琐，更严重者（书写特定文件的位置会出现错误）。更由于项目中不同的生产环境和开发环境的配置，使得配置文件变得更加糟糕。</p>
+
+<p>使用单个的配置文件会影响到任务的可重用性，随着项目需求的增长，我们必须要找到更有效地管理配置文件的方法。</p>
+
+<h3 id="管理配置文件的几种方法">管理配置文件的几种方法</h3>
+<p>配置文件的管理有一下几种方法。</p>
+
+<ul>
+  <li>在每个环境的多个文件中维护配置，并通过–config参数将webpack指向每个文件，通过模块导入共享配置。</li>
+  <li>将配置文件推送到库，然后引用库。</li>
+  <li>将配置文件推送到工具。</li>
+  <li>维护单个配置文件的所有配置并在那里进行分支并依赖–env参数。</li>
+</ul>
+
+<p>本文以第四种方式阐述webpack配置文件的分离。</p>
+
+<h3 id="分离配置文件">分离配置文件</h3>
+
+<p>我们在根目录下创建config文件夹，并创建四个配置文件，分别是：</p>
+<ul>
+  <li>webpack.comm.js   公共环境的配置文件</li>
+  <li>webpack.development.js    开发环境下的配置文件</li>
+  <li>webpack.production.js     生产环境下的配置文件</li>
+  <li>webpack.parts.js      各个配置零件的配置文件</li>
+</ul>
+
+<p><img src="https://user-gold-cdn.xitu.io/2018/11/29/1675e44eeb0eb185?w=234&amp;h=111&amp;f=png&amp;s=5949" alt="" /></p>
+
+<h3 id="合并配置文件的工具">合并配置文件的工具</h3>
+<p>如果配置文件被分成了许多不同的部分，那么必须以某种方式来组合他们，通常就是合并数组和对象，webpack-merge很好的做到了这一点。</p>
+<blockquote>
+  <p>webpack-merge做了两件事：它允许连接数组并合并对象，而不是覆盖组合。</p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>const merge = require("webpack-merge");
+merge(
+    {a : [1],b:5,c:20},
+    {a : [2],b:10, d: 421}
+)
+//合并后的结果
+{a : [1,2] ,b :10 , c : 20, d : 421}
+</code></pre></div></div>
+
+<h3 id="使用webpack-merge合并配置文件">使用webpack-merge合并配置文件</h3>
+<p>首先将webpack-merge添加到项目中</p>
+<pre><code class="language-CMD">npm install webpack-merge --save-dev
+</code></pre>
+<p>首先设置各个配置文件的连接</p>
+<h4 id="webpackconfigjs">webpack.config.js</h4>
+<pre><code class="language-JavaScript">const commConfig = require("./config/webpack.comm");
+const developmentConfig = requie("./config/webpack.development");
+const productionConfig = require("./config/webpack.development")
+const merge = require("webpack-merge");
+
+module.exports = mode =&gt; {
+    if(mode === "production"){
+        return merge(commConfig,productionConfig,{mode});   
+    }
+    return merge(commConfig,developmentConfig,{mode});
+}
+</code></pre>
+<p>上面代码利用mode的值来判断是开发环境还是生产环境</p>
+<h4 id="webpackcommjs">webpack.comm.js</h4>
+<pre><code class="language-JavaScript">const merge = require("webpack-merge");
+const parts = require("./webpack.parts")    //引入配置零件文件
+const config = {
+    //书写公共配置    
+}
+module.exports = merge([
+    config,
+    parts......
+])
+</code></pre>
+<h4 id="webpackproductionjs">webpack.production.js</h4>
+<pre><code class="language-JavaScript">const merge = require("webpack-merge");
+const parts = require("./webpack.parts");   //引入配置零件文件
+const config = {
+    //书写公共配置
+}
+modules.exports = merge([
+    config,
+    parts......
+])
+</code></pre>
+<h4 id="webpackdevelopmentjs">webpack.development.js</h4>
+<pre><code class="language-JavaScript">const merge = require("webpack-merge");
+const parts = require("./webpack.parts");   //引入配置零件文件
+const config = {
+    //书写公共配置
+}
+modules.exports = merge([
+    config,
+    parts......
+])
+</code></pre>
+<h3 id="使用env值传参">使用–env值传参</h3>
+<p>使用–env允许将字符串传递给配置。我们来修改下package.json</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    "dev": "webpack --env development ",
+    "prod": "webpack --env production",
+    "dev:server": "webpack-dev-server --env development "
+</code></pre></div></div>
+<p>这样就使得env参数mode环境参数传入到webpack.config.js中，就可以判断是生产环境还是开发环境。</p>
+
+<h3 id="如何写出可配置的webpackpartsjs">如何写出可配置的webpack.parts.js</h3>
+<p>上面可以看出我们新建了一个webpack.parts.js文件，这个文件中主要是存放我们的一些配置零件。如何写出可配置，可拔插的配置零件。就是我们这个文件的最重要的部分。</p>
+
+<p>以loadCSS为例：</p>
+<pre><code class="language-Javascript">exports.loadCSS = ({reg = /\.css$/,include,exclude,uses = []} = {}) =&gt; ({
+    module : {
+        rules:[{
+            test : reg,
+            include,
+            exclude,
+            use[{
+                loader : "style-loader",
+            },{
+                loader : "css-loader",
+            }].concat(uses),
+        }]
+    }
+})
+</code></pre>
+<p>上面代码中，利用exports导出单个配置零件，通过解构赋值来传入参数。使用数组的concat来连接外部导入的loader。参数解析：</p>
+<ul>
+  <li>reg:表示loader匹配的test正则，默认为css，这里可以是（less、sass、stylus）。</li>
+  <li>include:表示所要打包的文件夹。</li>
+  <li>exclude：表示要跳过打包的文件夹。</li>
+  <li>uses：外部导入的loader。</li>
+</ul>
+
+<h4 id="在webpackdevelopmentjs中引入">在webpack.development.js中引入</h4>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">merge</span><span class="p">([</span>
+    <span class="nx">config</span><span class="p">,</span>
+    <span class="nx">parts</span><span class="p">.</span><span class="nx">loadCSS</span><span class="p">({</span>
+        <span class="na">reg</span> <span class="p">:</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">less/</span><span class="p">,</span>
+        <span class="na">use</span> <span class="p">:</span> <span class="p">[</span><span class="s2">"less-loader"</span><span class="p">]</span>
+    <span class="p">}),</span>
+    <span class="nx">parts</span><span class="p">.</span><span class="nx">loadCSS</span><span class="p">(),</span>
+<span class="p">])</span>
+
+</code></pre></div></div>
+
+<h3 id="分离配置文件的好处">分离配置文件的好处</h3>
+<p>配置文件拆分可以是我们继续扩展配置。最重要的收益是我们可以提取不同目标之间的共性。并且还可以识别要组合的较小配置部件，这些配置不见可以推送到自己的软件包以跨项目使用。还可以将配置作为依赖项进行管理，而不是在多个项目中复制类似的配置。</p>
+<h3 id="我自己的parts配置">我自己的parts配置</h3>
+<p>展示一部分我自己的部件配置，由于在学习阶段，不足的地方还望大佬们提出，学习进步。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * @name 本地服务器配置
+ * @param host  打开的url
+ * @param port  打开url的端口号
+ * 
+ */</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">devServer</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">host</span><span class="p">,</span> <span class="nx">port</span><span class="p">}</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">=&gt;</span> <span class="p">({</span>
+    <span class="na">devServer</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="na">stats</span> <span class="p">:</span> <span class="s2">"errors-only"</span><span class="p">,</span>
+        <span class="nx">host</span><span class="p">,</span>
+        <span class="nx">port</span><span class="p">,</span>
+        <span class="na">open</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="na">overlay</span> <span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+<span class="cm">/**
+ * @name 未从js中分离的cssLoader配置
+ * @param reg 匹配文件的后缀名test
+ * @param include 所要打包的文件夹
+ * @param exclude 跳过打包的文件夹
+ * @param uses 所要向loadCSS中添加的loader
+ */</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">loadCSS</span> <span class="o">=</span> <span class="p">({</span><span class="nx">reg</span> <span class="o">=</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">css$/</span><span class="p">,</span><span class="nx">include</span><span class="p">,</span><span class="nx">exclude</span><span class="p">,</span><span class="nx">uses</span> <span class="o">=</span> <span class="p">[]}</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="na">module</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">rules</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="na">test</span><span class="p">:</span> <span class="nx">reg</span><span class="p">,</span>
+                <span class="na">use</span><span class="p">:</span> <span class="p">[{</span>
+                    <span class="na">loader</span><span class="p">:</span> <span class="s2">"style-loader"</span>
+                <span class="p">},</span> <span class="p">{</span>
+                    <span class="na">loader</span><span class="p">:</span> <span class="s2">"css-loader"</span>
+                <span class="p">}].</span><span class="nx">concat</span><span class="p">(</span><span class="nx">uses</span><span class="p">),</span>
+                <span class="nx">include</span><span class="p">,</span>
+                <span class="nx">exclude</span><span class="p">,</span>
+            <span class="p">}]</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="cm">/**
+ * @name 从js中分离的cssLoader配置
+ * @param reg 匹配文件的后缀名test
+ * @param include 所要打包的文件夹
+ * @param exclude 跳过打包的文件夹
+ * @param uses 所要向loadCSS中添加的loader
+ *  */</span>
+<span class="kd">const</span> <span class="nx">MiniCssExtrectPlugin</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"mini-css-extract-plugin"</span><span class="p">);</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">extractCSS</span> <span class="o">=</span> <span class="p">({</span><span class="nx">reg</span> <span class="o">=</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">css$/</span><span class="p">,</span><span class="nx">include</span><span class="p">,</span><span class="nx">exclude</span><span class="p">,</span><span class="nx">uses</span> <span class="o">=</span> <span class="p">[]}</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">plugin</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MiniCssExtrectPlugin</span><span class="p">({</span>
+        <span class="na">filename</span> <span class="p">:</span> <span class="s2">"styles/[name]-[hash:5].css"</span><span class="p">,</span>
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="na">module</span><span class="p">:</span> <span class="p">{</span>
+            <span class="na">rules</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="na">test</span><span class="p">:</span> <span class="nx">reg</span><span class="p">,</span>
+                <span class="na">use</span><span class="p">:</span> <span class="p">[{</span>
+                    <span class="na">loader</span><span class="p">:</span> <span class="nx">MiniCssExtrectPlugin</span><span class="p">.</span><span class="nx">loader</span><span class="p">,</span>
+                    <span class="na">options</span> <span class="p">:</span> <span class="p">{</span>
+                        <span class="na">publicPath</span> <span class="p">:</span> <span class="s2">"../"</span>
+                    <span class="p">}</span>
+                <span class="p">},</span> <span class="p">{</span>
+                    <span class="na">loader</span><span class="p">:</span> <span class="s2">"css-loader"</span>
+                <span class="p">}].</span><span class="nx">concat</span><span class="p">(</span><span class="nx">uses</span><span class="p">),</span>
+                <span class="nx">include</span><span class="p">,</span>
+                <span class="nx">exclude</span><span class="p">,</span>
+            <span class="p">}]</span>
+        <span class="p">},</span>
+        <span class="na">plugins</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="nx">plugin</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="cm">/**
+ * @name css tree-shaking：将没有用到的css扔掉
+ * @param paths 监听css tree-shaking 的文件名
+ */</span>
+<span class="kd">const</span> <span class="nx">PurifyCssPlugin</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">"purifycss-webpack"</span><span class="p">);</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">purifyCSS</span> <span class="o">=</span> <span class="p">({</span><span class="nx">paths</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="p">({</span>
+    <span class="na">plugins</span> <span class="p">:</span> <span class="p">[</span>
+        <span class="k">new</span> <span class="nx">PurifyCssPlugin</span><span class="p">({</span><span class="nx">paths</span><span class="p">})</span>
+    <span class="p">]</span>
+<span class="p">})</span>
+
+<span class="cm">/**
+ * @name autoprefixer 为css样式添加浏览器前缀
+ * @author wangchong
+ */</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">autoprefix</span> <span class="o">=</span><span class="p">()</span> <span class="o">=&gt;</span><span class="p">({</span>
+    <span class="na">loader</span> <span class="p">:</span> <span class="s2">"postcss-loader"</span><span class="p">,</span>
+    <span class="na">options</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="na">plugins</span> <span class="p">:</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="nx">require</span><span class="p">(</span><span class="s2">"autoprefixer"</span><span class="p">)]</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="cm">/**
+ * @name loadImage ：打包图片资源
+ * @param include 所要打包的文件夹
+ * @param exclude 跳过打包的文件夹
+ * @param options loader的options配置
+ */</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">loadImage</span> <span class="o">=</span> <span class="p">({</span><span class="nx">include</span><span class="p">,</span><span class="nx">exclude</span><span class="p">,</span><span class="nx">options</span><span class="p">}</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">=&gt;</span> <span class="p">({</span>
+    <span class="na">module</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="na">rules</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="na">test</span> <span class="p">:</span> <span class="sr">/</span><span class="se">\.(</span><span class="sr">png|jpg</span><span class="se">)</span><span class="sr">$/</span><span class="p">,</span>
+                <span class="nx">include</span><span class="p">,</span>
+                <span class="nx">exclude</span><span class="p">,</span>
+                <span class="na">use</span> <span class="p">:</span> <span class="p">{</span>
+                    <span class="na">loader</span> <span class="p">:</span> <span class="s2">"url-loader"</span><span class="p">,</span>
+                    <span class="nx">options</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+</code></pre></div></div>
+<p>文章总结自：<a href="https://survivejs.com/webpack/developing/composing-configuration/">Surviejs-webpack</a>。</p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/01/22/PromiseA+/" data-toggle="tooltip" data-placement="top" title="手写一个PromiseA+">前一篇<br>
+                        <span>手写一个PromiseA+</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/01/23/node1/" data-toggle="tooltip" data-placement="top" title="NodeJS入门">后一篇<br>
+                        <span>NodeJS入门</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

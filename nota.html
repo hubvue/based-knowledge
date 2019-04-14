@@ -1,0 +1,52 @@
+---
+title: 读书笔记
+layout: default
+header-img: https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1552813335063&di=db5b4404db63c200ab9047160c9284f6&imgtype=0&src=http%3A%2F%2Fclubimg.dbankcdn.com%2Fdata%2Fattachment%2Fforum%2F201903%2F05%2F103430tamlbzez8ykhrfx6.jpg
+description: 寒窗苦读十年圣贤书
+---
+
+<!-- Page Header -->
+<style>
+    .nota-wrapper{
+        min-height:400px;
+    }
+</style>
+<header class="intro-header" style="background-image: url('{{ site.baseurl }}{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="site-heading" id="tag-heading">
+                    <h1>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</h1>
+                    <span class="subheading">{{ page.description }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+<div class="container nota-wrapper">
+	<div class="row">
+		<div class="col-lg-8 col-lg-offset-3 col-md-10 col-md-offset-1">
+            <div id='tag_cloud' class="tags">
+                <a href="#你不知道的JavaScript" title="你不知道的JavaScript" rel="5">你不知道的JavaScript</a>
+            </div>
+			<div class="one-tag-list" id='你不知道的JavaScript'>
+			  	<span class="fa fa-tag listing-seperator">
+                    <span class="tag-text">你不知道的JavaScript</span>
+                </span>
+				<div class="post-preview">
+				    <a href="/2019/03/15/javascript-this/">
+				        <h2 class="post-title">
+                            [读书笔记]探索JavaScript中的this机制
+				        </h2>
+				    </a>
+				</div>
+				<hr>
+
+			</div>
+
+
+		</div>
+	</div>
+</div>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>Node终端debug - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/02/11/node-debug/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('img/bg/hello_world.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#NodeJS" title="NodeJS">NodeJS</a>
+                        
+                    </div>
+                    <h1>Node终端debug</h1>
+                    
+                    
+                    <h2 class="subheading">使用node终端进行代码调试</h2>
+                    
+                    <span class="meta">Posted by wang chong on February 11, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h3 id="nodejs终端调试器">NodeJS终端调试器</h3>
+<p>在Node.js中，提供了一个在命令行界面中可以使用的调试器，可以利用该调试器来进行一些应用程序的简单调试，例如显示代码、变量及函数的返回值等。</p>
+
+<p>在Nodejs中，提供了一个通过简单TCP洗衣来访问的调试器。</p>
+<h4 id="启动调试">启动调试</h4>
+<p>在终端中使用下面命令来启动调试器</p>
+<blockquote>
+  <p>node debug test.js</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/10/168d7fd5b799cc89?w=658&amp;h=185&amp;f=png&amp;s=72126" alt="" />
+打开之后就是上面这样子。</p>
+
+<h4 id="调试命令">调试命令</h4>
+<h5 id="continue">continue</h5>
+<p>如果需要继续执行当前被暂停执行的脚本，可以使用continue命令，在debug后面输入‘cont’命令或者‘c’命令。
+<img src="https://user-gold-cdn.xitu.io/2019/2/10/168d80f325565ca7?w=460&amp;h=78&amp;f=png&amp;s=27531" alt="" /></p>
+<h5 id="next">next</h5>
+<p>如果不需要执行完剩余的脚本，可以next命令，在debug后面输入‘next’命令或者‘n’命令，就将程序执行到下一句可执行的代码之前。
+<img src="https://user-gold-cdn.xitu.io/2019/2/10/168d811a50d68865?w=319&amp;h=131&amp;f=png&amp;s=16492" alt="" />
+next命令是以一条可执行的命令为单位执行，因此在执行到函数的时候并不会进入函数内部去，而是直接返回函数的执行结果。如果想进入函数内部就需要下面这个命令。</p>
+<h5 id="step">step</h5>
+<p>如果想在next命令执行过程中进入函数内部，就需要step命令。程序将要执行函数调用的代码的时候在debug后面输入‘step’命令或者‘s’命令，程序会停留在函数内的第一行代码。然后再使用next命令逐渐的执行代码。
+<img src="https://user-gold-cdn.xitu.io/2019/2/10/168d81542c41621f?w=658&amp;h=220&amp;f=png&amp;s=64562" alt="" /></p>
+<h5 id="out">out</h5>
+<p>当使用step命令进入函数内部的时候，可以使用out命令立即执行完函数内剩余的所有代码，也就是说立即执行完函数。暂停在该函数之后的下一行代码之前。在debug后面使用‘out’命令或者‘o’命令。
+<img src="https://user-gold-cdn.xitu.io/2019/2/10/168d81863f0ceab9?w=656&amp;h=121&amp;f=png&amp;s=27651" alt="" />
+上面代码输出了1。test函数执行完毕。</p>
+
+<h3 id="观察变量值与表达式执行的结果">观察变量值与表达式执行的结果</h3>
+<p>在程序调试过程中，可以通过使用命令来观察某个变量的值或某个表达式的执行结果。</p>
+<h4 id="watch观察时使用的表达式">watch(‘观察时使用的表达式’)</h4>
+<p>在watch命令中，可以书写任何需要观察的表达式，命令行窗口中将在每执行一行代码之后均显示该表达式的执行结果。</p>
+
+<p>修改一下js代码。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">test</span><span class="p">(){</span>
+    <span class="kd">var</span> <span class="nx">n</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="nx">i</span> <span class="o">++</span><span class="p">){</span>
+        <span class="nx">n</span> <span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">test</span><span class="p">();</span>
+</code></pre></div></div>
+<p>启动调试，根据上面操作进入到test函数内部。执行以下观察。</p>
+<blockquote>
+  <p>watch(‘n==4’)</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/11/168d840078001f5b?w=631&amp;h=48&amp;f=png&amp;s=14298" alt="" />
+什么也没有出现，第一次next命令
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d840778f0f473?w=610&amp;h=172&amp;f=png&amp;s=37019" alt="" />
+可以看到</p>
+<blockquote>
+  <p>n==4 false</p>
+</blockquote>
+
+<p>继续next，当执行n++第三次的时候。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d841d2f452491?w=541&amp;h=173&amp;f=png&amp;s=27877" alt="" />
+可以看到</p>
+<blockquote>
+  <p>n==4 true</p>
+</blockquote>
+
+<h4 id="watchers">watchers</h4>
+<p>可以使用watchers命令查看所有观察表达式的运行结果或变量的变量值。</p>
+<blockquote>
+  <p>watchers
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d842f84fa31c0?w=475&amp;h=61&amp;f=png&amp;s=18242" alt="" /></p>
+</blockquote>
+
+<h4 id="unwatch观察时使用的表达式">unwatch(‘观察时使用的表达式’)</h4>
+<p>使用unwatch方法解除指定的观察对象。</p>
+<blockquote>
+  <p>unwatch(‘n==4’);</p>
+</blockquote>
+
+<p>解除之后使用watchers查看观察表达式。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d8450c3ce6e04?w=321&amp;h=70&amp;f=png&amp;s=10043" alt="" />
+已经没有了。</p>
+
+<h3 id="断点">断点</h3>
+<p>当我们在调试程序的时候执行结果不是我们所预期的时候，要通过next命令一句一句的debug，代码少的还好，如果代码很重，那么这样简直是噩梦式的存在。在NodeJS中的调试中也可以像在编辑器中那么打断点。指定调试过程中所要停止的位置。</p>
+<h4 id="设置断点">设置断点</h4>
+<p>需要设置断点的时候使用setBreakpoint命令或者sb命令。方法如下：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">setBreakpoint</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span><span class="nx">line</span><span class="p">)</span>
+<span class="nx">sb</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span><span class="nx">line</span><span class="p">)</span>
+</code></pre></div></div>
+<ol>
+  <li>第一个参数用于指定需要设置断点的脚本文件名</li>
+  <li>第二个参数用于指定将断点设置在第几行</li>
+  <li>如果省略第一个参数，代表在当前正在运行的脚本文件中设置断点，当两个参数值均省略时，将把断点设置在调试器中下一句执行的脚本代码处。</li>
+</ol>
+
+<p>例如：在本例中的第4行打断点</p>
+<blockquote>
+  <p>sb(4)</p>
+</blockquote>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/2/11/168d851b30f1df9c?w=653&amp;h=163&amp;f=png&amp;s=47668" alt="" />
+设置断点后使用c命令，脚本代码将一直运行到断点处停止，
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d852bddcba509?w=482&amp;h=137&amp;f=png&amp;s=19819" alt="" /></p>
+
+<h4 id="清除断点">清除断点</h4>
+<p>在使用了setBreakpoint命令设置断点之后，可以使用clearBreakpoint命令或cb命令取消断点，方法如下所示:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">clearBreakpoint</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="nx">line</span><span class="p">)</span>  
+<span class="nx">cb</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="nx">line</span><span class="p">)</span> 
+</code></pre></div></div>
+<ol>
+  <li>第一个参数用于指定需要取消断点的脚本文件名</li>
+  <li>第二个参数用于指定取消第几行位置处的断点</li>
+  <li>如果省略第一个参数，代表取消当前正在运行的脚本文件中的断点，当两个参数值均省略时，将取消调试器中下一句执行的脚本代码处的断点。</li>
+</ol>
+
+<h3 id="调试器中的其他命令">调试器中的其他命令</h3>
+<p>除了上述调试代码的命令之外，还有其他的实用的命令。</p>
+<h4 id="backtrace命令">backtrace命令</h4>
+<p>当代码中有深层函数调用的时候，可以实用backtrace命令或者bt命令查看该函数及其外层各函数的返回位置，包括返回代码的行号及起始字符所在位置。</p>
+
+<p>修改一下代码：</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>  
+<span class="kd">var</span> <span class="nx">func1</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span>  
+<span class="kd">var</span> <span class="nx">func2</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span>  
+<span class="kd">var</span> <span class="nx">func3</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span>  
+<span class="kd">var</span> <span class="nx">func4</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span>  
+<span class="kd">var</span> <span class="nx">func5</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span>  
+                    <span class="nx">i</span><span class="o">=</span><span class="nx">i</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>  
+                <span class="p">}</span>  
+<span class="nx">func5</span><span class="p">();</span>  
+            <span class="p">}</span>  
+<span class="nx">func4</span><span class="p">();</span>  
+        <span class="p">}</span>  
+<span class="nx">func3</span><span class="p">();</span>  
+    <span class="p">}</span>   
+<span class="nx">func2</span><span class="p">();</span>  
+<span class="p">}</span>  
+<span class="nx">func1</span><span class="p">();</span>  
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">i</span><span class="p">);</span> 
+</code></pre></div></div>
+<p>通过next和step命令进入最里层函数内部，执行bt命令，得到以下函数调用栈
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d859288dbe479?w=406&amp;h=253&amp;f=png&amp;s=31340" alt="" /></p>
+
+<h4 id="list命令">list命令</h4>
+<p>在调试器中调试代码的过程中，可以使用list命令查看当前所要执行代码之前及之后的几行代码。</p>
+
+<blockquote>
+  <p>list(n)</p>
+</blockquote>
+
+<p>在list命令中，可使用一个整数型参数，用于指定查看当前所要执行代码之前及之后的多少行代码。例如：list(3)
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d85aabf0e7a1d?w=350&amp;h=139&amp;f=png&amp;s=16709" alt="" /></p>
+
+<h4 id="repl命令">repl命令</h4>
+<p>在调试过程中可以使用repl进入REPL运行环境
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d85b7c6746d96?w=548&amp;h=52&amp;f=png&amp;s=17473" alt="" /></p>
+
+<h4 id="restart命令">restart命令</h4>
+<p>在调试过程中随时可使用restart命令重新开始脚本的调试。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d85c3391432b7?w=657&amp;h=186&amp;f=png&amp;s=70919" alt="" /></p>
+
+<h4 id="kill命令">kill命令</h4>
+<p>在调试过程中随时可使用kill命令终止脚本文件的调试。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d85ce1a98122a?w=656&amp;h=57&amp;f=png&amp;s=24000" alt="" /></p>
+
+<h4 id="run命令">run命令</h4>
+<p>在使用了kill命令终止脚本文件的调试后，可使用run命令重新开始脚本文件的调试。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d85d849cbf88d?w=649&amp;h=206&amp;f=png&amp;s=65872" alt="" /></p>
+
+<h4 id="scripts命令">scripts命令</h4>
+<p>在加载了一些模块文件后，可使用scripts命令查看当前正在运行的文件及所有被加载的模块文件名称（不包含Node.js中的内置模块）。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d8604085ddb05?w=421&amp;h=45&amp;f=png&amp;s=7567" alt="" /></p>
+
+<h4 id="version命令">version命令</h4>
+<p>version命令用于显示Node.js所用V8 JavaScript引擎的版本号。
+<img src="https://user-gold-cdn.xitu.io/2019/2/11/168d860cadf0f2bd?w=444&amp;h=54&amp;f=png&amp;s=8655" alt="" /></p>
+
+<h3 id="node调试工具">node调试工具</h3>
+<p>除了上面的这些原生的方式，也可以通过node调试工具来调试。
+<a href="https://www.npmjs.com/package/node-inspector">node-inspector调试工具</a></p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/02/09/hapi/" data-toggle="tooltip" data-placement="top" title="Hapi框架总结">前一篇<br>
+                        <span>Hapi框架总结</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/02/11/dataconnect/" data-toggle="tooltip" data-placement="top" title="三种数据推送的方案">后一篇<br>
+                        <span>三种数据推送的方案</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
