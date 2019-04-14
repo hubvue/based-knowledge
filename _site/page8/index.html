@@ -14,7 +14,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:4000/page4/">
+    <link rel="canonical" href="http://localhost:4000/page8/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -160,264 +160,34 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2019/03/16/http-cache/">
+    <a href="/2019/01/18/javascript-test/">
         <h2 class="post-title">
-            HTTP缓存策略
+            JavaScript集成化测试
         </h2>
         
         <h3 class="post-subtitle">
-            HTTP浏览器缓存解析及Nginx实战
+            JavaScript单元测试、e2e测试、UI测试、接口测试
         </h3>
         
         <div class="post-content-preview">
-            缓存的定义
-缓存就是数据交换的缓冲区（称作Cache），这个概念最初是来自于内存和CPU。当某一硬件要读取数据时，会首先从缓存中查找需要的数据，如果找到了则直接执行，找不到的话则从内存中找。由于缓存的运行速度比内存快得多，故缓存的作用就是帮助硬件更快地运行。
-
-Web缓存
-客户端和服务器之间是通过请求和响应来相互通信的。
+            来一打JavaScript集成化测试(实战篇)
+JavaScript与QA工程师(理论篇)
 
 
-  请求的本质就是从客户端向服务器发起请求，获取服务器资源(图片、...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 16, 2019
-    </p>
-</div>
-<hr>
+开搞
+单元测试
+单元测试的测试框架有很多中，今天用的是karma，还有一个是React推出的jest
+初始化npm
 
-<div class="post-preview">
-    <a href="/2019/03/15/javascript-this/">
-        <h2 class="post-title">
-            [读书笔记]探索JavaScript中this机制
-        </h2>
-        
-        <h3 class="post-subtitle">
-            JavaScript中this机制的探索之旅
-        </h3>
-        
-        <div class="post-content-preview">
-            我在想写这篇文章的时候，我是无从下手的。因为我自己也同样说不清在JavaScript中this到底是什么？我们都知道在一些强类型语言中（像java）对this有一个很好的定义：this就是一个指针，指向当前对象。在JavaScript中如果用上面这种方法来表示this的话，是不完全的。对于我来说，this就像JavaScript中的魔术师，千变万化中又有着那么一丝丝小套路。
-何为this？
+  npm  init -y
+  下载karma包
+  npm install karam –save-dev
+  安装karma-jasmine和jasmine-core断言库
 ...
         </div>
     </a>
     <p class="post-meta">
-        Posted by wang chong on March 15, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/03/03/yahoo/">
-        <h2 class="post-title">
-            雅虎军规35条：引用自百度大佬
-        </h2>
-        
-        <h3 class="post-subtitle">
-            雅虎军规35条
-        </h3>
-        
-        <div class="post-content-preview">
-            
-雅虎军规
-
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 3, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/03/03/aop/">
-        <h2 class="post-title">
-            你所不知道的JavaScript面向切面编程
-        </h2>
-        
-        <h3 class="post-subtitle">
-            JavaScript面向切面编程小实战
-        </h3>
-        
-        <div class="post-content-preview">
-            Aspect Orientend Programming(AOP)
-
-
-  AOP(面向切面编程)是一个比较热门的话题，它的主要作用是把一些跟核心业务逻辑模块无关的功能抽离出来，这些跟业务逻辑无关的功能通常包括日志统计、安全控制、异常处理等。把这些功能抽离出来之后， 再通过“动态织入”的方式掺入业务逻辑模块中。
-
-
-在前端中面向切面编程热度并不是很好，但是它对于我们做一些事情是非常有必要的。...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 3, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/03/01/linux-fr/">
-        <h2 class="post-title">
-            Linux的文件操作权限
-        </h2>
-        
-        <h3 class="post-subtitle">
-            解释Linux系统中的文件操作权限
-        </h3>
-        
-        <div class="post-content-preview">
-            我们都知道有时候我们在linux系统上操作文件或文件夹的时候总是会报有没有权限这个错误，这可能让我们很懵逼，不知道咋回事，想操作也操作不了，最终使用sudo来解决问题。所以说，熟知Linux的文件操作权限是很有必要的。
-
-操作权限
-在Linux终端中使用下面这个命令可以显示出文件的操作权限。
-
-  ls -l
-
-
-
-这个命令的意思是让该目录下的文件或文件夹显示全部文件信息。
-
-在每一个文件前...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 1, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/03/01/linux-scp/">
-        <h2 class="post-title">
-            Linux的scp命令：传送文件
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Linux系统中scp命令的使用
-        </h3>
-        
-        <div class="post-content-preview">
-            我们通常写好代码之后要部署到远程服务器的开发环境上，所有必须要使用某种方法把本地的代码上传到远程服务器上去。Linu系统正好提供这个命令。
-scp
-scp是Linux上的一个命令，Mac也可以使用。这个命令的主要作用就是远程复制文件。
-
-这个命令使用的是加密连接，和ssh加密的通道一样。
-
-远程复制文件的三种姿势
-本地文件复制到远程服务器上
-把本地文件复制到远程服务器上是部署的一个基本操作，...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 1, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/02/26/parcel-start/">
-        <h2 class="post-title">
-            Parcel初体验及特性分析
-        </h2>
-        
-        <h3 class="post-subtitle">
-            新型构建工具初探及特性分析
-        </h3>
-        
-        <div class="post-content-preview">
-            Parcel
-Parcel是近年出现的新一代打包工具，它的出现很明显的要挑战Webpack，因为它官网的一句话：
-
-  极速零配置Web应用打包工具。
-
-
-Parcel的特性分析
-官网把parcel的特性说的明明白白的。
-
-
-  第一条：我们都知道webpack是基于node的，而node是单线程的，并且webpack解析资源文件是基于loader的，每一次经过loader解析都要经历Str...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on February 26, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/02/26/yeoman/">
-        <h2 class="post-title">
-            yeoman的使用
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Yeoman入门学习
-        </h3>
-        
-        <div class="post-content-preview">
-            yeoman
-yeoman 是一个现代应用程序的web脚手架。
-yeoman的特性
-
-  快速创建骨架应用程序—-使用可自定义的模板以及其他工具轻松地创建新项目的骨架
-  自动编译CoffeeScript和Compass—在做出变更的时候，Yeoman的LiveReload监视进程会自动编译源文件，并刷新浏览器，而不需要手动刷新。
-  自动化完善你的脚本—所有脚本都会自动针对JSHint进行...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on February 26, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/02/26/grunt-start/">
-        <h2 class="post-title">
-            学习Grunt构建方式
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Gunt入门学习
-        </h3>
-        
-        <div class="post-content-preview">
-            Grunt
-Grunt是和Gulp在同一个时期的前端自动化构建工具。但是因为Gulp编译的速度比Grunt更快，所以在那个时期就被Gulp打压。虽说并没有想象中的那么火，但是在前端工程化的道路上，还是有必要学习一下它的。
-
-何为构建工具？
-
-  一句话：自动化。对于需要反复重复的任务，例如压缩（minification）、编译、单元测试、linting等，自动化工具可以减轻你的劳动，简化你的...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on February 26, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/02/26/ci-web/">
-        <h2 class="post-title">
-            前端工程化的持续集成
-        </h2>
-        
-        <h3 class="post-subtitle">
-            前端工程化持续集成
-        </h3>
-        
-        <div class="post-content-preview">
-            什么是持续集成？
-持续集成(Continuous intergration),也叫CI。
-
-在持续集成环境中，开发人员将会频繁的提交代码到主干。这些新提交在最终合并到主线之前，都需要通过编译和自动化测试流进行验证。这样做是基于之前持续集成过程中很重视自动化测试验证结果，以保障所有的提交在合并主干之后的质量问题，对可能出现的一些问题进行预警。
-
-什么是持续交付？
-持续集成(Continuous...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on February 26, 2019
+        Posted by wang chong on January 18, 2019
     </p>
 </div>
 <hr>
@@ -428,13 +198,9 @@ Grunt是和Gulp在同一个时期的前端自动化构建工具。但是因为Gu
 <ul class="pager">
     
     <li class="previous">
-        <a href="/page3">&larr; 上一页</a>
+        <a href="/page7">&larr; 上一页</a>
     </li>
     
-    
-    <li class="next">
-        <a href="/page5">下一页 &rarr;</a>
-    </li>
     
 </ul>
 

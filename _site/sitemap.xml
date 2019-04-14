@@ -277,6 +277,14 @@
 <lastmod>2019-04-14T08:12:44+08:00</lastmod>
 </url>
 <url>
+<loc>http://localhost:4000/2019/04/14/react-san-component/</loc>
+<lastmod>2019-04-14T10:56:59+08:00</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/2019/04/14/immutable-data/</loc>
+<lastmod>2019-04-14T11:08:41+08:00</lastmod>
+</url>
+<url>
 <loc>http://localhost:4000/about/</loc>
 </url>
 <url>
@@ -311,6 +319,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/page7/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/page8/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/blog-server/2019/01/18/javascript-test/</loc>

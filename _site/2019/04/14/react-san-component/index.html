@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tomorrow is Blog">
+    <meta name="keywords"  content="">
+         
+    <title>React三种常用组件 - 小冲的博客 | Tomorrow Blog</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:4000/2019/04/14/react-san-component/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- font-awesome CSS -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Highlight CSS -->
+    <link rel="stylesheet" href="/css/github.min.css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Tomorrow</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">首页</a>
+                    </li>
+                    <li>
+                        <a href="/tags">标签</a>
+                    </li>
+                    <li>
+                        <a href="/books">书单</a>
+                    </li>
+                    <li>
+                        <a href="/nota">读书笔记</a>
+                    </li>
+                    <li>
+                        <a href="/about">关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553337506344&di=e4bad495d76574ca77897e2d0e0e6134&imgtype=0&src=http%3A%2F%2Fs1.51cto.com%2Fwyfs02%2FM01%2F88%2F7F%2FwKiom1f55HCSS-DrAACSkyHme8o914.png-wh_651x-s_1436211364.png')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#React" title="React">React</a>
+                        
+                    </div>
+                    <h1>React三种常用组件</h1>
+                    
+                    
+                    <h2 class="subheading">React中三种常用的组件</h2>
+                    
+                    <span class="meta">Posted by wang chong on April 14, 2019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<p>React核心就是组件，基本上是处处即组件。</p>
+
+<h2 id="类组件">类组件</h2>
+<p>类组件是最基本的组件，同时也是写的最多的组件。</p>
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span> <span class="p">,{</span><span class="nx">Component</span><span class="p">}</span> <span class="k">from</span> <span class="s2">"react"</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nx">Greeting</span> <span class="kd">extends</span> <span class="nx">Component</span><span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">props</span><span class="p">){</span>
+        <span class="k">super</span><span class="p">(</span><span class="nx">props</span><span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="p">{</span><span class="na">count</span><span class="p">:</span> <span class="nx">props</span><span class="p">.</span><span class="nx">initialCount</span><span class="p">};</span>
+    <span class="p">}</span>
+    <span class="c1">//默认props</span>
+    <span class="kr">static</span> <span class="nx">defineProps</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="na">name</span><span class="p">:</span> <span class="s2">"普通的Component组件"</span>
+    <span class="p">}</span>
+    <span class="nx">render</span><span class="p">(){</span>
+        <span class="c1">// return  "Hello World";</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">&lt;</span><span class="nt">li</span> <span class="na">key=</span><span class="s2">"A"</span><span class="p">&gt;</span>hello<span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;,</span>
+            <span class="p">&lt;</span><span class="nt">li</span> <span class="na">key=</span><span class="s2">"B"</span><span class="p">&gt;</span>world<span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;,</span>
+            <span class="p">&lt;</span><span class="nt">li</span> <span class="na">key=</span><span class="s2">"C"</span><span class="p">&gt;</span>Hello World<span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;,</span>
+            <span class="s2">"Hello World"</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span> <span class="k">default</span> <span class="nx">Greeting</span><span class="p">;</span>
+</code></pre></div></div>
+<p>对于一个平常的类组件是非常的复杂的，类组件又有state又有props，而且拥有一个完整的生命周期。类组件特别庞大。所以就可以采用函数式组件。</p>
+<h2 id="函数式组件">函数式组件</h2>
+<p>函数式组件就是一个简单的函数，因为在React16.8之前只能接收<code class="highlighter-rouge">props</code>，函数式组件也可以称为无状态组件，非常的简单。</p>
+
+<p>当一个组件只是一个单纯的显示信息(例如：列表页)，不需要state，并且也不需要完整的生命周期，那么就可以使用函数式组件来完成。</p>
+
+<p>函数式组件，不需要关心组件的一生命周期和渲染过程中的钩子函数，更简介。</p>
+
+<p>函数式组件没有自身state，相同的props输入必然会得到相同的组件展示，也就是说函数式组件是纯函数，即函数式组件也可以成为<code class="highlighter-rouge">纯函数组件</code>。</p>
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span><span class="p">,</span> <span class="p">{</span><span class="nx">Component</span><span class="p">}</span> <span class="k">from</span> <span class="s2">"react"</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">Button</span> <span class="o">=</span> <span class="p">({</span><span class="nx">day</span><span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">&lt;&gt;</span>
+            <span class="p">&lt;</span><span class="nt">button</span>
+                <span class="na">onClick=</span><span class="si">{</span><span class="p">()</span><span class="o">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">day</span><span class="p">)</span><span class="si">}</span>
+            <span class="p">&gt;</span>我是<span class="si">{</span><span class="nx">day</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+        <span class="p">&lt;/&gt;</span>
+    <span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nx">Greeting</span> <span class="kd">extends</span> <span class="nx">Component</span><span class="p">{</span>
+    <span class="nx">render</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="p">&lt;</span><span class="nc">Button</span> 
+                <span class="na">day=</span><span class="s2">"函数式组件"</span>
+                
+                <span class="p">/&gt;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span> <span class="k">default</span> <span class="nx">Greeting</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="纯组件">纯组件</h2>
+<p>React有一个很大的毛病，比如说有一个列表组件，当列表中只有一个li改变，React渲染会把所有的li全部都会渲染一遍，把所有的比较，渲染中的性能优化全部交给domdiff来做。项目很小的话，没有很多区别；如果项目越来越大，性能就会慢很多。</p>
+
+<p>上面这个毛病是可以改变的，React类组件中有一个生命周期<code class="highlighter-rouge">shouldComponentUpdate</code>，它必须返回一个boolean值，当返回false的时候直接回到原来的状态不进行渲染，当返回true的时候才会执行render函数渲染。因此我们可以手动的判断<code class="highlighter-rouge">state和props</code>改变前和改变后的值是否发生变化，来判断是否进行渲染。</p>
+
+<p>但是每次在开发过程中手写<code class="highlighter-rouge">shouldComponentUpdate</code>来判断是否渲染太过麻烦，于是可以借助<code class="highlighter-rouge">react-addone-pure-render-mixin</code>这个插件重写了shouldComponentUpdate，不需要我们自己写方法,但是这个也只是浅比较，如果states中有对象的话，则不会发生作用。</p>
+
+<p>后来就有了PureComponent这个组件，这个组件在React内部继承自Component，并且有了<code class="highlighter-rouge">react-addone-pure-render-mixin</code>的特性。PureComponent和Component的功能基本上一致，不同的是在性能调优上起到作用。</p>
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nx">Gretting</span> <span class="kd">extends</span> <span class="nx">PureComponent</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">props</span><span class="p">){</span>
+        <span class="k">super</span><span class="p">(</span><span class="nx">props</span><span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="na">todos</span> <span class="p">:</span> <span class="nx">todos</span><span class="p">,</span>
+            <span class="na">temps</span> <span class="p">:</span> <span class="nx">temps</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="nx">clickHandle</span><span class="p">(){</span>
+        <span class="kd">let</span> <span class="nx">todos</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">todos</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">"zhangsan"</span><span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">(()</span><span class="o">=&gt;</span><span class="p">({</span> 
+            <span class="na">todos</span><span class="p">:</span> <span class="nx">todos</span><span class="p">,</span>
+        <span class="p">}))</span>
+        <span class="kd">let</span> <span class="nx">temp1</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">temps</span><span class="p">;</span>
+        <span class="kd">let</span> <span class="nx">temp2</span> <span class="o">=</span> <span class="nx">temp1</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span><span class="na">message</span><span class="p">:</span> <span class="s2">"helloWorld"</span><span class="p">});</span>
+    <span class="p">}</span>
+    <span class="nx">render</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="p">&lt;&gt;</span>
+                <span class="p">&lt;</span><span class="nt">button</span> <span class="na">onClick=</span><span class="si">{</span><span class="p">()</span><span class="o">=&gt;</span><span class="p">{</span><span class="k">this</span><span class="p">.</span><span class="nx">clickHandle</span><span class="p">()}</span><span class="si">}</span><span class="p">&gt;</span>点击<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+                <span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span>
+                    <span class="si">{</span><span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">todos</span><span class="p">.</span><span class="nx">map</span><span class="p">((</span><span class="nx">todo</span><span class="p">,</span><span class="nx">index</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">&lt;</span><span class="nc">Todo</span> <span class="na">key=</span><span class="si">{</span><span class="nx">index</span><span class="si">}</span> <span class="na">value=</span><span class="si">{</span><span class="nx">todo</span><span class="si">}</span><span class="p">/&gt;)</span><span class="si">}</span>
+                <span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+            <span class="p">&lt;/&gt;</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="nx">Gretting</span><span class="p">;</span>
+</code></pre></div></div>
+<h3 id="什么情况下使用纯组件">什么情况下使用纯组件</h3>
+<p>PureComponent相比于Component一直需要在shoulComponentUpdate中计算是否需要渲染，当子组件中的数据不固定的时候，子组件不停的渲染，那么可以使用PureComponent。如果组件的数据基本的固定，那么就不需要使用PureComponent了，数据固定使用PureComponent反而会增加了计算的负担。</p>
+<h3 id="关于浅比较">关于浅比较</h3>
+<p>上面提到了浅比较，浅比较的意思是只比较一层，也就是说只比较<code class="highlighter-rouge">this.state</code>的直接属性，如果其中还有对象或者数组的话，内部的值是不会进行比较的。</p>
+
+<p>我们都知道javascript值类型分为两种：引用值和原始值。</p>
+
+<p>原始值有：</p>
+<ul>
+  <li>String</li>
+  <li>Number</li>
+  <li>Undefined</li>
+  <li>Null</li>
+  <li>Boolean</li>
+  <li>Symbol</li>
+</ul>
+
+<p>引用值有：</p>
+<ul>
+  <li>Object(object、array、function)</li>
+</ul>
+
+<p>javascript内存分为栈区和堆区：原始值存放在栈区，引用值存放在堆区。</p>
+<h4 id="栈区">栈区</h4>
+<p>原始值在栈区是直接把值存放在栈区中。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="mi">3</span>
+</code></pre></div></div>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/4/14/16a19719ef6e7ce1?w=305&amp;h=251&amp;f=png&amp;s=6343" alt="" /></p>
+
+<p>当原始值做赋值操作的时候，直接把栈区中的值赋予了一个新的变量。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">d</span> <span class="o">=</span> <span class="nx">a</span><span class="p">;</span>
+</code></pre></div></div>
+<p><img src="https://user-gold-cdn.xitu.io/2019/4/14/16a1972dd3a3b577?w=288&amp;h=300&amp;f=png&amp;s=7103" alt="" />
+因此在PureComponent中可以直接比较出两个修改前后的值是否一致。</p>
+<h4 id="堆区">堆区</h4>
+<p>引用值是把对象存放在堆区，而变量的值是引用值在堆区的地址。比如说</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span><span class="na">name</span><span class="p">:</span><span class="s1">'wang'</span><span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/4/14/16a197815efc425c?w=603&amp;h=308&amp;f=png&amp;s=18573" alt="" /></p>
+
+<p>当把一个对象或一个数组赋予一个新的变量的时候，堆区是不发生改变的，只是在栈区把当前对象的地址赋予了一个新的变量。</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">temp</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">;</span>
+</code></pre></div></div>
+<p><img src="https://user-gold-cdn.xitu.io/2019/4/14/16a19790049681a5?w=585&amp;h=367&amp;f=png&amp;s=24725" alt="" />
+因此现在我们知道，无论如何改变对象中的值，obj和temp总是相等。</p>
+
+<p><img src="https://user-gold-cdn.xitu.io/2019/4/14/16a197b35d57b8a2?w=400&amp;h=173&amp;f=png&amp;s=12955" alt="" />
+这种形式PureComponent中就无法进行，无论怎么改变，改变前和改变后都是相同的。因此我们想如果改变后是一个新的对象不就可以了吗？</p>
+
+
+                <hr style="visibility: hidden;">
+
+                <!-- Baidu Share -->
+                
+                <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more">分享到：</a><a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a><a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a><a href="#" class="bds_douban" data-cmd="douban" title="分享到豆瓣网">豆瓣网</a></div>
+                
+
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2019/04/14/react16-renderreturn/" data-toggle="tooltip" data-placement="top" title="React16：render函数的多种返回值">前一篇<br>
+                        <span>React16：render函数的多种返回值</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2019/04/14/immutable-data/" data-toggle="tooltip" data-placement="top" title="数据的不可变性">后一篇<br>
+                        <span>数据的不可变性</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr>
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<!-- Baidu Share -->
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://blog.csdn.net/c__dreamer">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">C</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://juejin.im/user/5be013ff6fb9a04a0a5ea2f9">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-1x fa-inverse">掘</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/hubvue">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Tomorrow 2019
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript" async
+  src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- Highlight.js -->
+<script>
+    async("https://cdn.bootcss.com/highlight.js/9.13.1/highlight.min.js", function(){
+        hljs.initHighlightingOnLoad();
+    })
+</script>
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+<!-- Baidu Push-->
+<script>
+    // do not push in tag.html
+    if($('#tag_cloud').length == 0){
+        (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+    }
+</script>
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'f6a2411319635fb25d87e059c64cd6ca';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.jpg" width="0" height="0" /> -->
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

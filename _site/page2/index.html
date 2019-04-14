@@ -160,6 +160,60 @@
             ">
     			
 <div class="post-preview">
+    <a href="/2019/03/31/vue-directive/">
+        <h2 class="post-title">
+            Vue-Directive
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Vue自定义指令
+        </h3>
+        
+        <div class="post-content-preview">
+            Vue有着它的很强大的指令系统。回顾一下什么是指令：例如v-on,v代表vue，on表示指令名。
+
+Vue是提供自定义指令的，使用Vue.directive方法就可以自定义属性。
+
+Vue.directive方法有两个参数：
+
+  第一个参数是指令的名字，例如：on。
+  第二个参数是一个对象，对象的属性是指令的相关钩子函数，
+  其他情况下，第二个参数也可以写成一个函数，函数参数和钩子函数...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wangchong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/03/31/vue-transition/">
+        <h2 class="post-title">
+            Vue动画效果
+        </h2>
+        
+        <h3 class="post-subtitle">
+            初识Vue动画效果
+        </h3>
+        
+        <div class="post-content-preview">
+            Vue原生有一个transition组件，可以用于做动画。把想要做动画的DOM元素放在transiton标签内就可以了。Vue原生只是提供了这样一种途径，但是并没有提供动画效果，动画效果还需要我们开发者自己来做。
+过渡类名
+Vue动画使用一系列钩子来得到动画执行时期的状态。
+
+在进入/离开的过渡中，会有 6 个 class 切换:
+
+  v-enter：定义进入过渡的开始状态。在元素被插入之...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wangchong on March 31, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
     <a href="/2019/03/31/vue-component-asyncdata/">
         <h2 class="post-title">
             Vue组件与异步获取数据的方式
@@ -398,68 +452,6 @@ export default class App extends ...
 </div>
 <hr>
 
-<div class="post-preview">
-    <a href="/2019/03/24/react-left/">
-        <h2 class="post-title">
-            React 生命周期
-        </h2>
-        
-        <h3 class="post-subtitle">
-            学习React生命周期
-        </h3>
-        
-        <div class="post-content-preview">
-            
-  每个软件都有从开始创建到运行到最终销毁的一段路程，这可以说成是软件的生命周期。
-
-
-React生命周期
-React的核心是基于组件的，React的组件也是有声明周期的，和大部分软件相同，它同样具有从开始创建到运行再到最终销毁的这段路程。
-
-
-  React组件的生命周期分为三个阶段：挂载 -&gt; 更新 -&gt; 卸载。
-
-
-每个阶段有与之相对应的钩子函数。
-
-
-上图是官网的一张生...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 24, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/03/23/react-props-state/">
-        <h2 class="post-title">
-            React props and state
-        </h2>
-        
-        <h3 class="post-subtitle">
-            React中属性和状态学习及二者之间的比较
-        </h3>
-        
-        <div class="post-content-preview">
-            Props
-Props(properties)：属性，可以说组件是React的核心了，如果把组件比喻成一个管道，那么props就相当于输入。
-
-props可以定义在注册组件的地方，也可以在组件内部定义默认属性，无论在哪里定义，props都是只读的。
-
-props可以应用于JSX中html的元素上，自定义组件的元素上(相当于给子组件传值)，也可以应用于值。
-
-定义默认props
-ES5和ES6...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wang chong on March 23, 2019
-    </p>
-</div>
-<hr>
-
 
 <!-- Pager -->
 
@@ -582,7 +574,7 @@ ES5和ES6...
                             
                         
                             
-                                <a href="/tags/#React" title="React" rel="7">
+                                <a href="/tags/#React" title="React" rel="9">
                                     React
                                 </a>
                             

@@ -160,6 +160,65 @@
             ">
     			
 <div class="post-preview">
+    <a href="/2019/04/14/immutable-data/">
+        <h2 class="post-title">
+            数据的不可变性
+        </h2>
+        
+        <h3 class="post-subtitle">
+            React中使用数据的不可变性
+        </h3>
+        
+        <div class="post-content-preview">
+            不可变性
+上个文章中有提到，当数据改变后是一新的对象和原本的对象没有关系，不就可以比较了。这种方式有两种实现方式。
+
+Clone
+克隆分为浅克隆和深克隆：
+
+  浅克隆：只是把对象的第一层属性克隆下来，如果内部有对象或者数组的话则不会再继续克隆。
+  深克隆：深度克隆一个对象，如果一个对象内部还有一个对象的话，则继续克隆。深度克隆除了值相同其他没有任何联系。
+
+
+对于PureComponen...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on April 14, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2019/04/14/react-san-component/">
+        <h2 class="post-title">
+            React三种常用组件
+        </h2>
+        
+        <h3 class="post-subtitle">
+            React中三种常用的组件
+        </h3>
+        
+        <div class="post-content-preview">
+            React核心就是组件，基本上是处处即组件。
+
+类组件
+类组件是最基本的组件，同时也是写的最多的组件。
+import React ,{Component} from "react";
+
+class Greeting extends Component{
+    constructor(props){
+        super(props);
+        this.state = {co...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by wang chong on April 14, 2019
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
     <a href="/2019/04/14/react16-renderreturn/">
         <h2 class="post-title">
             React16：render函数的多种返回值
@@ -367,60 +426,6 @@ Vue声明周期图
 </div>
 <hr>
 
-<div class="post-preview">
-    <a href="/2019/03/31/vue-directive/">
-        <h2 class="post-title">
-            Vue-Directive
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Vue自定义指令
-        </h3>
-        
-        <div class="post-content-preview">
-            Vue有着它的很强大的指令系统。回顾一下什么是指令：例如v-on,v代表vue，on表示指令名。
-
-Vue是提供自定义指令的，使用Vue.directive方法就可以自定义属性。
-
-Vue.directive方法有两个参数：
-
-  第一个参数是指令的名字，例如：on。
-  第二个参数是一个对象，对象的属性是指令的相关钩子函数，
-  其他情况下，第二个参数也可以写成一个函数，函数参数和钩子函数...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wangchong on March 31, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/03/31/vue-transition/">
-        <h2 class="post-title">
-            Vue动画效果
-        </h2>
-        
-        <h3 class="post-subtitle">
-            初识Vue动画效果
-        </h3>
-        
-        <div class="post-content-preview">
-            Vue原生有一个transition组件，可以用于做动画。把想要做动画的DOM元素放在transiton标签内就可以了。Vue原生只是提供了这样一种途径，但是并没有提供动画效果，动画效果还需要我们开发者自己来做。
-过渡类名
-Vue动画使用一系列钩子来得到动画执行时期的状态。
-
-在进入/离开的过渡中，会有 6 个 class 切换:
-
-  v-enter：定义进入过渡的开始状态。在元素被插入之...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by wangchong on March 31, 2019
-    </p>
-</div>
-<hr>
-
 
 <!-- Pager -->
 
@@ -539,7 +544,7 @@ Vue动画使用一系列钩子来得到动画执行时期的状态。
                             
                         
                             
-                                <a href="/tags/#React" title="React" rel="7">
+                                <a href="/tags/#React" title="React" rel="9">
                                     React
                                 </a>
                             
